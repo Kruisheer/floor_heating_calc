@@ -15,7 +15,7 @@ const splitPath = (start, end, maxLength) => {
   }
 
   const numberOfSegments = Math.ceil(totalLength / maxLength);
-  const segmentLength = totalLength / numberOfSegments;
+  // Removed 'segmentLength' as it's unused
   const dx = (end.x - start.x) / numberOfSegments;
   const dy = (end.y - start.y) / numberOfSegments;
 
