@@ -1,70 +1,93 @@
-// pipeAlgorithm.js
-// This is a simplified example. In a real-world scenario, you might use more sophisticated algorithms.
+// floor-heating-planner/src/components/pipeAlgorithm.js
+
+// Utility function to calculate the Euclidean distance between two points
+const calculateDistance = (start, end) => {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+// Function to split a path into segments not exceeding maxLength
+const splitPath = (start, end, maxLength) => {
+  const totalLength = calculateDistance(start, end);
+  if (totalLength <= maxLength) {
+    return [{ start, end, points: [] }];
+  }
+
+  const numberOfSegments = Math.ceil(totalLength / maxLength);
+  const segmentLength = totalLength / numberOfSegments;
+  const dx = (end.x - start.x) / numberOfSegments;
+  const dy = (end.y - start.y) / numberOfSegments;
+
+  const segments = [];
+  for (let i = 0; i < numberOfSegments; i++) {
+    const segmentStart = {
+      x: start.x + dx * i,
+      y: start.y + dy * i,
+    };
+    const segmentEnd = {
+      x: start.x + dx * (i + 1),
+      y: start.y + dy * (i + 1),
+    };
+    segments.push({ start: segmentStart, end: segmentEnd, points: [] });
+  }
+
+  return segments;
+};
 
 const generatePipePaths = (houseSize, placedRooms, doors) => {
-    // For simplicity, assume a central heating source at (0,0)
-    const heatingSource = { x: 0, y: 0 };
-    const paths = [];
-    const elbows = [];
-  
-    placedRooms.forEach((room, index) => {
-      // Calculate the center of the room
-      const roomCenter = {
-        x: room.x + room.width / 2,
-        y: room.y + room.height / 2,
-      };
-  
-      // Simple path: heating source -> room center
-      const path = {
-        start: heatingSource,
-        end: roomCenter,
-        points: [
-          { x: heatingSource.x, y: roomCenter.y }, // Horizontal to y level
-          { x: roomCenter.x, y: roomCenter.y }, // Then vertical to room
-        ],
-        length: calculatePathLength(heatingSource, roomCenter),
-      };
-  
-      paths.push(path);
-  
-      // Add elbows at each turn
-      path.points.forEach((point) => {
-        elbows.push(point);
-      });
-  
-      // Check if pipe length exceeds 100 meters
-      if (path.length > 100) {
-        // Split the pipe into two segments
-        const midPoint = {
-          x: (path.start.x + path.end.x) / 2,
-          y: (path.start.y + path.end.y) / 2,
-        };
-        const firstSegment = {
-          start: path.start,
-          end: midPoint,
-          points: [],
-          length: calculatePathLength(path.start, midPoint),
-        };
-        const secondSegment = {
-          start: midPoint,
-          end: path.end,
-          points: [],
-          length: calculatePathLength(midPoint, path.end),
-        };
-        paths[index] = firstSegment;
-        paths.push(secondSegment);
-        elbows.push(midPoint);
+  const heatingSource = { x: 0, y: 0 }; // Central heating source
+  const paths = [];
+  const elbows = [];
+
+  placedRooms.forEach((room, index) => {
+    // Calculate the center of the room
+    const roomCenter = {
+      x: room.x + room.width / 2,
+      y: room.y + room.height / 2,
+    };
+
+    // Define a simple path: heatingSource -> roomCenter via horizontal then vertical
+    const pathStart = heatingSource;
+    const elbowPoint = { x: roomCenter.x, y: heatingSource.y }; // Horizontal first
+
+    // Calculate segments
+    const firstSegment = {
+      start: pathStart,
+      end: elbowPoint,
+      points: [],
+      length: calculateDistance(pathStart, elbowPoint),
+    };
+
+    const secondSegment = {
+      start: elbowPoint,
+      end: roomCenter,
+      points: [],
+      length: calculateDistance(elbowPoint, roomCenter),
+    };
+
+    // Add elbow
+    elbows.push(elbowPoint);
+
+    // Check if any segment exceeds 100m
+    const maxLength = 100;
+    let segmentsToAdd = [];
+
+    [firstSegment, secondSegment].forEach((segment) => {
+      if (segment.length > maxLength) {
+        const splitSegments = splitPath(segment.start, segment.end, maxLength);
+        segmentsToAdd = segmentsToAdd.concat(splitSegments);
+        // Add elbows for each split
+        splitSegments.slice(1).forEach((seg) => elbows.push(seg.start));
+      } else {
+        segmentsToAdd.push(segment);
       }
     });
-  
-    return { paths, elbows };
-  };
-  
-  const calculatePathLength = (start, end) => {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-  
-  export default generatePipePaths;
-  
+
+    paths.push(...segmentsToAdd);
+  });
+
+  return { paths, elbows };
+};
+
+export default generatePipePaths;

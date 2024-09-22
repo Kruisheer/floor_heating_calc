@@ -1,3 +1,4 @@
+// floor-heating-planner/src/components/FloorHeatingWizard.js
 import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -58,6 +59,7 @@ const FloorHeatingWizard = () => {
                 onChange={(e) =>
                   setHouseSize({ ...houseSize, width: Number(e.target.value) })
                 }
+                min="1"
               />
             </label>
             <br />
@@ -69,6 +71,7 @@ const FloorHeatingWizard = () => {
                 onChange={(e) =>
                   setHouseSize({ ...houseSize, height: Number(e.target.value) })
                 }
+                min="1"
               />
             </label>
             <br />
@@ -215,7 +218,7 @@ const FloorHeatingWizard = () => {
               <ul>
                 {pipePaths.map((path, index) => (
                   <li key={index}>
-                    Path {index + 1}: {path.length} meters
+                    Path {index + 1}: {path.length.toFixed(2)} meters
                   </li>
                 ))}
               </ul>
