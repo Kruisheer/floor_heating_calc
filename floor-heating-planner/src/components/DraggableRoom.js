@@ -1,7 +1,7 @@
 // src/components/DraggableRoom.js
 
 import React from 'react';
-import './DraggableRoom.css'; // Optional: For styling
+import './DraggableRoom.css'; // Ensure this import statement is correct
 
 const DraggableRoom = ({ name, dimensions }) => {
   return (

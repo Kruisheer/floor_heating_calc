@@ -1,0 +1,30 @@
+/* src/components/DraggableRoom.css */
+
+.draggable-room {
+    background-color: #d1e7dd; /* Light green background */
+    border: 2px solid #0f5132; /* Dark green border */
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px;
+    width: 150px;
+    cursor: grab; /* Indicates draggable */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .draggable-room:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+  }
+  
+  .draggable-room h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #0f5132;
+  }
+  
+  .draggable-room p {
+    margin: 0;
+    font-size: 1em;
+    color: #134e4a;
+  }
+  
