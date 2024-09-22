@@ -1,28 +1,14 @@
+// src/components/DraggableRoom.js
+
 import React from 'react';
-import { useDrag } from 'react-dnd';
+import './DraggableRoom.css'; // Optional: For styling
 
-const DraggableRoom = ({ id, room }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'ROOM',
-    item: { id, ...room },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
-
+const DraggableRoom = ({ name, dimensions }) => {
   return (
-    <div
-      ref={drag}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-        cursor: 'move',
-        border: '1px solid black',
-        padding: '10px',
-        marginBottom: '10px',
-        backgroundColor: '#f0f0f0',
-      }}
-    >
-      Room {id + 1}: {room.width}m x {room.height}m
+    <div className="draggable-room">
+      <h4>{name}</h4>
+      <p>{dimensions}</p>
+      {/* Additional features like drag handles can be added here */}
     </div>
   );
 };

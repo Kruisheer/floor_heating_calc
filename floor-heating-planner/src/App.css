@@ -1,66 +1,57 @@
-/* App.css */
+/* src/App.css */
+
 .App {
   text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.wizard-container,
+.house-canvas-container {
   padding: 20px;
 }
 
-.floor-heating-wizard {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: left;
+.room-form input {
+  margin: 5px;
+  padding: 8px;
+  width: 200px;
 }
 
-.floor-heating-wizard h1 {
-  text-align: center;
-}
-
-.floor-heating-wizard label {
-  display: block;
-  margin: 10px 0;
-}
-
-.floor-heating-wizard input {
+.room-form button {
+  padding: 8px 16px;
   margin-left: 10px;
-  padding: 5px;
-  width: 100px;
 }
 
-.floor-heating-wizard button {
-  margin: 10px 5px;
-  padding: 10px 20px;
+.rooms-list ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.rooms-list li {
+  background-color: #f0f0f0;
+  margin: 5px auto;
+  padding: 10px;
+  width: 300px;
+  border-radius: 4px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.canvas {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-top: 20px;
 }
 
-.App-link {
-  color: #61dafb;
+.draggable-room {
+  background-color: #d1e7dd;
+  border: 1px solid #0f5132;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 10px;
+  width: 150px;
+  cursor: grab;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.next-button {
+  padding: 10px 20px;
+  margin-top: 20px;
 }
