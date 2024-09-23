@@ -2,9 +2,8 @@
 
 import React from 'react';
 import RoomCanvas from './RoomCanvas';
-import { createRoomGrid } from '../utils/roomGrid';
+import { createRoomGrid, addObstaclesToGrid } from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
-import './DraggableRoom.css'; // Ensure this import statement is correct
 
 const DraggableRoom = ({ name, dimensions, obstacles = [] }) => {
   const grid = createRoomGrid(dimensions);
@@ -19,6 +18,5 @@ const DraggableRoom = ({ name, dimensions, obstacles = [] }) => {
     </div>
   );
 };
-
 
 export default DraggableRoom;

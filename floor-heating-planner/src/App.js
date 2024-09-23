@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<FloorHeatingWizard />} />
           <Route path="/house-canvas" element={<HouseCanvas />} />
-          {/* Add more routes as needed */}
+          {/* You can add more routes here if needed */}
         </Routes>
       </div>
     </Router>
