@@ -46,6 +46,7 @@ const DraggableRoom = ({
       >
         <h4>{name}</h4>
         <p>{dimensions}</p>
+        <p>Total Pipe Length: {totalPipeLength.toFixed(2)} meters</p>
         <RoomCanvas
           grid={gridWithObstacles}
           path={path}
