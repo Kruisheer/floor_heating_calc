@@ -7,16 +7,19 @@
  * @returns {Array<Array<number>>} - A 2D array representing the room grid.
  */
 export const createRoomGrid = (dimensions, gridSize = 0.1) => {
-  // Parse the dimensions string to extract length and width
-  const [length, width] = dimensions.split('x').map(Number);
+  const [lengthStr, widthStr] = dimensions.split('x').map(s => s.trim());
 
-  // Calculate the number of rows and columns based on grid size
+  // Remove any non-digit characters (like ' meters')
+  const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
+  const width = parseFloat(widthStr.replace(/[^\d.]/g, ''));
+
+  if (isNaN(length) || isNaN(width)) {
+    throw new Error(`Invalid dimensions: ${dimensions}`);
+  }
+
   const rows = Math.floor(length / gridSize);
   const cols = Math.floor(width / gridSize);
-
-  // Create a 2D grid initialized with zeros
   const grid = Array.from({ length: rows }, () => Array(cols).fill(0));
-
   return grid;
 };
 

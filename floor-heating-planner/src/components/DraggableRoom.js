@@ -6,10 +6,25 @@ import { createRoomGrid, addObstaclesToGrid } from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
 
 const DraggableRoom = ({ name, dimensions, obstacles = [] }) => {
-  const grid = createRoomGrid(dimensions);
+  let grid;
+  try {
+    grid = createRoomGrid(dimensions);
+  } catch (error) {
+    console.error(`Error creating grid for ${name}:`, error);
+    return (
+      <div className="draggable-room">
+        <h4>{name}</h4>
+        <p>Error: {error.message}</p>
+      </div>
+    );
+  }
+
   const gridWithObstacles = addObstaclesToGrid(grid, obstacles);
   const path = generateHeatingLoopPath(gridWithObstacles);
-  console.log('Generated path:', path);
+
+  console.log('Grid:', grid);
+  console.log('Grid with Obstacles:', gridWithObstacles);
+  console.log('Generated Path:', path);
 
   return (
     <div className="draggable-room">
