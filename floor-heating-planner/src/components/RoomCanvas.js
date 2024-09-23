@@ -3,21 +3,21 @@
 import React from 'react';
 import { Stage, Layer, Line, Rect } from 'react-konva';
 
-const RoomCanvas = ({ grid, path }) => {
-  const cellSize = 10; // Size of each cell in pixels
-
-  // Calculate the canvas size
-  const width = grid[0].length * cellSize;
-  const height = grid.length * cellSize;
+const RoomCanvas = ({ grid, path, roomWidth, roomHeight }) => {
+  // Calculate cell sizes
+  const cols = grid[0].length;
+  const rows = grid.length;
+  const cellSizeX = roomWidth / cols;
+  const cellSizeY = roomHeight / rows;
 
   // Generate points for the Line component
   const linePoints = path.flatMap((point) => [
-    point.x * cellSize + cellSize / 2,
-    point.y * cellSize + cellSize / 2,
+    point.x * cellSizeX + cellSizeX / 2,
+    point.y * cellSizeY + cellSizeY / 2,
   ]);
 
   return (
-    <Stage width={width} height={height}>
+    <Stage width={roomWidth} height={roomHeight}>
       <Layer>
         {/* Draw Obstacles */}
         {grid.map((row, y) =>
@@ -26,10 +26,10 @@ const RoomCanvas = ({ grid, path }) => {
               return (
                 <Rect
                   key={`obstacle-${x}-${y}`}
-                  x={x * cellSize}
-                  y={y * cellSize}
-                  width={cellSize}
-                  height={cellSize}
+                  x={x * cellSizeX}
+                  y={y * cellSizeY}
+                  width={cellSizeX}
+                  height={cellSizeY}
                   fill="gray"
                 />
               );
