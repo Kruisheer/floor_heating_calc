@@ -9,6 +9,7 @@ const DraggableRoom = ({ name, dimensions, obstacles = [] }) => {
   const grid = createRoomGrid(dimensions);
   const gridWithObstacles = addObstaclesToGrid(grid, obstacles);
   const path = generateHeatingLoopPath(gridWithObstacles);
+  console.log('Generated path:', path);
 
   return (
     <div className="draggable-room">

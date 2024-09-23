@@ -5,6 +5,19 @@ import { Stage, Layer, Line, Rect } from 'react-konva';
 
 const RoomCanvas = ({ grid, path }) => {
   const cellSize = 10; // Size of each cell in pixels
+
+  // Check if path is an array
+  if (!Array.isArray(path)) {
+    console.error('The "path" provided to RoomCanvas is not an array:', path);
+    return null; // Or render a fallback UI
+  }
+
+  // Generate the points for the Line component
+  const points = path.reduce((acc, point) => {
+    acc.push(point.x * cellSize + cellSize / 2, point.y * cellSize + cellSize / 2);
+    return acc;
+  }, []);
+
   return (
     <Stage width={grid[0].length * cellSize} height={grid.length * cellSize}>
       <Layer>
@@ -29,7 +42,7 @@ const RoomCanvas = ({ grid, path }) => {
 
         {/* Draw Heating Loop Path */}
         <Line
-          points={path.flatMap((point) => [point.x * cellSize + cellSize / 2, point.y * cellSize + cellSize / 2])}
+          points={points}
           stroke="red"
           strokeWidth={2}
           lineCap="round"
