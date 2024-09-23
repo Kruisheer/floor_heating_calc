@@ -1,0 +1,22 @@
+/* src/components/HouseCanvas.css */
+
+.house-canvas-page {
+  text-align: center;
+}
+
+.house-canvas-container {
+  position: relative;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  /* Optional: Add a grid background */
+  background-image: linear-gradient(to right, #eee 1px, transparent 1px),
+    linear-gradient(to bottom, #eee 1px, transparent 1px);
+  background-size: 50px 50px; /* Adjust grid size */
+}
+
+.next-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+}
