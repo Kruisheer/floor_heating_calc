@@ -6,20 +6,18 @@ import { Stage, Layer, Line, Rect } from 'react-konva';
 const RoomCanvas = ({ grid, path }) => {
   const cellSize = 10; // Size of each cell in pixels
 
-  // Check if path is an array
-  if (!Array.isArray(path)) {
-    console.error('The "path" provided to RoomCanvas is not an array:', path);
-    return null; // Or render a fallback UI
-  }
+  // Calculate the canvas size
+  const width = grid[0].length * cellSize;
+  const height = grid.length * cellSize;
 
-  // Generate the points for the Line component
-  const points = path.reduce((acc, point) => {
-    acc.push(point.x * cellSize + cellSize / 2, point.y * cellSize + cellSize / 2);
-    return acc;
-  }, []);
+  // Generate points for the Line component
+  const linePoints = path.flatMap((point) => [
+    point.x * cellSize + cellSize / 2,
+    point.y * cellSize + cellSize / 2,
+  ]);
 
   return (
-    <Stage width={grid[0].length * cellSize} height={grid.length * cellSize}>
+    <Stage width={width} height={height}>
       <Layer>
         {/* Draw Obstacles */}
         {grid.map((row, y) =>
@@ -27,7 +25,7 @@ const RoomCanvas = ({ grid, path }) => {
             if (cell === -1) {
               return (
                 <Rect
-                  key={`${x}-${y}`}
+                  key={`obstacle-${x}-${y}`}
                   x={x * cellSize}
                   y={y * cellSize}
                   width={cellSize}
@@ -42,7 +40,7 @@ const RoomCanvas = ({ grid, path }) => {
 
         {/* Draw Heating Loop Path */}
         <Line
-          points={points}
+          points={linePoints}
           stroke="red"
           strokeWidth={2}
           lineCap="round"
