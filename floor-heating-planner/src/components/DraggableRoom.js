@@ -20,11 +20,14 @@ const DraggableRoom = ({ name, dimensions, obstacles = [] }) => {
   }
 
   const gridWithObstacles = addObstaclesToGrid(grid, obstacles);
-  const path = generateHeatingLoopPath(gridWithObstacles);
+
+  // Destructure the path and totalPipeLength from the returned object
+  const { path, totalPipeLength } = generateHeatingLoopPath(gridWithObstacles);
 
   console.log('Grid:', grid);
   console.log('Grid with Obstacles:', gridWithObstacles);
   console.log('Generated Path:', path);
+  console.log('Total Pipe Length:', totalPipeLength);
 
   return (
     <div className="draggable-room">
