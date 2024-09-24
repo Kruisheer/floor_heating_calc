@@ -4,20 +4,37 @@
   text-align: center;
 }
 
+.instructions {
+  margin: 20px;
+  font-size: 1em;
+  color: #333;
+}
+
 .house-canvas-container {
   display: flex;
   justify-content: center;
 }
 
 .room-info-sidebar {
-  width: 200px;
+  width: 250px; /* Adjust width as needed */
   padding: 10px;
   border-right: 1px solid #ccc;
   text-align: left;
+  overflow-y: auto; /* Enable scrolling if content overflows */
 }
 
 .room-info {
   margin-bottom: 15px;
+}
+
+.room-info h4 {
+  margin: 0 0 5px;
+  font-size: 1.1em;
+}
+
+.room-info p {
+  margin: 0 0 5px;
+  font-size: 0.9em;
 }
 
 .house-canvas {
@@ -33,5 +50,20 @@
 
 .next-button {
   margin-top: 20px;
-  padding: 10px 20px;
+  padding: 12px 24px;
+  font-size: 1em;
+  background-color: #28a745; /* Green color */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.next-button:hover {
+  background-color: #218838;
+}
+
+.next-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
