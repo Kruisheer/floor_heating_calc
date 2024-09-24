@@ -56,9 +56,10 @@ export const addObstaclesToGrid = (grid, obstacles) => {
  * @returns {Array<Array<number>>} - The updated grid with passageways added.
  */
 export const addPassagewaysToGrid = (grid, passageways, dimensions, gridSize = 0.1) => {
-  const [lengthStr, widthStr] = dimensions.split('x').map((s) => s.trim());
-  const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
-  const width = parseFloat(widthStr.replace(/[^\d.]/g, ''));
+  // Remove or comment out unused variables
+  // const [lengthStr, widthStr] = dimensions.split('x').map((s) => s.trim());
+  // const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
+  // const width = parseFloat(widthStr.replace(/[^\d.]/g, ''));
 
   const rows = grid.length;
   const cols = grid[0].length;
@@ -67,15 +68,8 @@ export const addPassagewaysToGrid = (grid, passageways, dimensions, gridSize = 0
     const { side, position, width: passageWidth } = passageway;
 
     // Convert position and passageWidth from meters to grid units
-    let positionUnits, passageWidthUnits;
-
-    if (side === 'top' || side === 'bottom') {
-      positionUnits = Math.floor(position / gridSize);
-      passageWidthUnits = Math.ceil(passageWidth / gridSize);
-    } else {
-      positionUnits = Math.floor(position / gridSize);
-      passageWidthUnits = Math.ceil(passageWidth / gridSize);
-    }
+    const positionUnits = Math.floor(position / gridSize);
+    const passageWidthUnits = Math.ceil(passageWidth / gridSize);
 
     if (side === 'top') {
       const y = 0; // top edge
