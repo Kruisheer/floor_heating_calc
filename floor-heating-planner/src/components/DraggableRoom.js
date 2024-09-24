@@ -14,7 +14,7 @@ const DraggableRoom = ({
   passageways = [],
   position = { x: 0, y: 0 },
   onDragStop,
-  onPipeLengthCalculated, // New prop
+  onPipeLengthCalculated,
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
   const [length, width] = dimensions.split('x').map(Number);
@@ -34,11 +34,20 @@ const DraggableRoom = ({
   let gridWithObstacles = addObstaclesToGrid(grid, obstacles);
 
   // Add passageways to the grid (if any)
-  gridWithObstacles = addPassagewaysToGrid(gridWithObstacles, passageways, dimensions, gridResolution);
+  gridWithObstacles = addPassagewaysToGrid(
+    gridWithObstacles,
+    passageways,
+    dimensions,
+    gridResolution
+  );
+
+  // Define loop spacing for consistent pipe density
+  const loopSpacing = Math.ceil(grid.length / 10); // Adjust as needed for consistency
 
   // Generate the heating loop path
   const { path, totalPipeLength } = generateHeatingLoopPath(gridWithObstacles, {
     gridSize: gridResolution,
+    loopSpacing: loopSpacing,
   });
 
   // Adjust cell size for the RoomCanvas
