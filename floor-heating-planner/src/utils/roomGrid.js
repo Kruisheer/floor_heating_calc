@@ -7,7 +7,7 @@
  * @returns {Array<Array<number>>} - A 2D array representing the room grid.
  */
 export const createRoomGrid = (dimensions, gridSize = 0.1) => {
-  const [lengthStr, widthStr] = dimensions.split('x').map(s => s.trim());
+  const [lengthStr, widthStr] = dimensions.split('x').map((s) => s.trim());
 
   // Remove any non-digit characters (like ' meters')
   const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
@@ -42,6 +42,72 @@ export const addObstaclesToGrid = (grid, obstacles) => {
       }
     }
   });
+  return grid;
+};
+
+/**
+ * Function to add passageways to the room grid.
+ * @param {Array<Array<number>>} grid - The 2D grid representing the room.
+ * @param {Array<Object>} passageways - An array of passageway objects.
+ * Each passageway should have the structure:
+ * { side: 'top' | 'bottom' | 'left' | 'right', position: number, width: number }
+ * @param {string} dimensions - The dimensions of the room in the format "length x width" (e.g., "5x4").
+ * @param {number} gridSize - The size of each grid cell in meters.
+ * @returns {Array<Array<number>>} - The updated grid with passageways added.
+ */
+export const addPassagewaysToGrid = (grid, passageways, dimensions, gridSize = 0.1) => {
+  const [lengthStr, widthStr] = dimensions.split('x').map((s) => s.trim());
+  const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
+  const width = parseFloat(widthStr.replace(/[^\d.]/g, ''));
+
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  passageways.forEach((passageway) => {
+    const { side, position, width: passageWidth } = passageway;
+
+    // Convert position and passageWidth from meters to grid units
+    let positionUnits, passageWidthUnits;
+
+    if (side === 'top' || side === 'bottom') {
+      positionUnits = Math.floor(position / gridSize);
+      passageWidthUnits = Math.ceil(passageWidth / gridSize);
+    } else {
+      positionUnits = Math.floor(position / gridSize);
+      passageWidthUnits = Math.ceil(passageWidth / gridSize);
+    }
+
+    if (side === 'top') {
+      const y = 0; // top edge
+      for (let x = positionUnits; x < positionUnits + passageWidthUnits; x++) {
+        if (x >= 0 && x < cols) {
+          grid[y][x] = 0; // Ensure it's not an obstacle
+        }
+      }
+    } else if (side === 'bottom') {
+      const y = rows - 1; // bottom edge
+      for (let x = positionUnits; x < positionUnits + passageWidthUnits; x++) {
+        if (x >= 0 && x < cols) {
+          grid[y][x] = 0;
+        }
+      }
+    } else if (side === 'left') {
+      const x = 0; // left edge
+      for (let y = positionUnits; y < positionUnits + passageWidthUnits; y++) {
+        if (y >= 0 && y < rows) {
+          grid[y][x] = 0;
+        }
+      }
+    } else if (side === 'right') {
+      const x = cols - 1; // right edge
+      for (let y = positionUnits; y < positionUnits + passageWidthUnits; y++) {
+        if (y >= 0 && y < rows) {
+          grid[y][x] = 0;
+        }
+      }
+    }
+  });
+
   return grid;
 };
 
