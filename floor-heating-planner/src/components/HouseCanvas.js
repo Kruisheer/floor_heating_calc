@@ -40,6 +40,12 @@ const HouseCanvas = () => {
   return (
     <div className="house-canvas-page">
       <h2>House Canvas</h2>
+      <div className="instructions">
+        <p>
+          Arrange your rooms on the canvas. When you're satisfied with the layout, click
+          "Generate Heating Plan" to proceed.
+        </p>
+      </div>
       <div className="house-canvas-container">
         {/* Sidebar for room information */}
         <div className="room-info-sidebar">
@@ -80,13 +86,17 @@ const HouseCanvas = () => {
                   [room.name]: { x: data.x, y: data.y },
                 }));
               }}
-              onPipeLengthCalculated={handlePipeLengthCalculated} // Pass the handler
+              onPipeLengthCalculated={handlePipeLengthCalculated}
             />
           ))}
         </div>
       </div>
-      <button onClick={() => navigate('/final-step')} className="next-button">
-        Next
+      <button
+        onClick={() => navigate('/final-step')}
+        className="next-button"
+        disabled={rooms.length === 0}
+      >
+        Generate Heating Plan
       </button>
     </div>
   );
