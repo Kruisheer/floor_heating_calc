@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import DraggableRoom from './DraggableRoom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './HouseCanvas.css'; // Ensure you have appropriate styles
+import './HouseCanvas.css';
 
 const HouseCanvas = () => {
   const location = useLocation();
@@ -12,6 +12,17 @@ const HouseCanvas = () => {
 
   // State to track positions of rooms
   const [roomPositions, setRoomPositions] = useState({});
+
+  // State to track pipe lengths for rooms
+  const [pipeLengths, setPipeLengths] = useState({});
+
+  // Function to handle pipe length updates from DraggableRoom
+  const handlePipeLengthCalculated = (roomName, pipeLength) => {
+    setPipeLengths((prev) => ({
+      ...prev,
+      [roomName]: pipeLength,
+    }));
+  };
 
   if (!rooms || rooms.length === 0) {
     return (
@@ -37,7 +48,12 @@ const HouseCanvas = () => {
             <div key={index} className="room-info">
               <h4>{room.name}</h4>
               <p>Dimensions: {room.dimensions} m</p>
-              <p>Total Pipe Length: {/* Display calculated pipe length */}</p>
+              <p>
+                Total Pipe Length:{' '}
+                {pipeLengths[room.name]
+                  ? `${pipeLengths[room.name].toFixed(2)} m`
+                  : 'Calculating...'}
+              </p>
             </div>
           ))}
         </div>
@@ -64,6 +80,7 @@ const HouseCanvas = () => {
                   [room.name]: { x: data.x, y: data.y },
                 }));
               }}
+              onPipeLengthCalculated={handlePipeLengthCalculated} // Pass the handler
             />
           ))}
         </div>

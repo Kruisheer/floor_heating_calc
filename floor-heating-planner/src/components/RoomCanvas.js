@@ -3,13 +3,15 @@
 import React from 'react';
 import { Stage, Layer, Line, Rect } from 'react-konva';
 
-const RoomCanvas = ({ grid, path, roomWidth, roomHeight }) => {
-  // Calculate cell sizes
-  const cols = grid[0].length;
-  const rows = grid.length;
-  const cellSizeX = roomWidth / cols;
-  const cellSizeY = roomHeight / rows;
-
+const RoomCanvas = ({
+  grid,
+  path,
+  roomWidth,
+  roomHeight,
+  cellSizeX,
+  cellSizeY,
+  passageways = [],
+}) => {
   // Generate points for the Line component
   const linePoints = path.flatMap((point) => [
     point.x * cellSizeX + cellSizeX / 2,
@@ -19,6 +21,72 @@ const RoomCanvas = ({ grid, path, roomWidth, roomHeight }) => {
   return (
     <Stage width={roomWidth} height={roomHeight}>
       <Layer>
+        {/* Draw Room Boundaries */}
+        <Line
+          points={[
+            0,
+            0,
+            roomWidth,
+            0,
+            roomWidth,
+            roomHeight,
+            0,
+            roomHeight,
+            0,
+            0,
+          ]}
+          stroke="black"
+          strokeWidth={2}
+          closed={true}
+        />
+
+        {/* Draw Passageways */}
+        {passageways.map((passageway, index) => {
+          const { side, position, width: passageWidth } = passageway;
+          let x1, y1, x2, y2;
+
+          // Convert position and width to pixels
+          let positionPx, passageWidthPx;
+          if (side === 'top' || side === 'bottom') {
+            positionPx = position * cellSizeX;
+            passageWidthPx = passageWidth * cellSizeX;
+          } else {
+            positionPx = position * cellSizeY;
+            passageWidthPx = passageWidth * cellSizeY;
+          }
+
+          if (side === 'top') {
+            x1 = positionPx;
+            y1 = 0;
+            x2 = positionPx + passageWidthPx;
+            y2 = 0;
+          } else if (side === 'bottom') {
+            x1 = positionPx;
+            y1 = roomHeight;
+            x2 = positionPx + passageWidthPx;
+            y2 = roomHeight;
+          } else if (side === 'left') {
+            x1 = 0;
+            y1 = positionPx;
+            x2 = 0;
+            y2 = positionPx + passageWidthPx;
+          } else if (side === 'right') {
+            x1 = roomWidth;
+            y1 = positionPx;
+            x2 = roomWidth;
+            y2 = positionPx + passageWidthPx;
+          }
+
+          return (
+            <Line
+              key={`passageway-${index}`}
+              points={[x1, y1, x2, y2]}
+              stroke="white"
+              strokeWidth={4}
+            />
+          );
+        })}
+
         {/* Draw Obstacles */}
         {grid.map((row, y) =>
           row.map((cell, x) => {
