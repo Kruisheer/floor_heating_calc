@@ -5,8 +5,23 @@
 }
 
 .house-canvas-container {
+  display: flex;
+  justify-content: center;
+}
+
+.room-info-sidebar {
+  width: 200px;
+  padding: 10px;
+  border-right: 1px solid #ccc;
+  text-align: left;
+}
+
+.room-info {
+  margin-bottom: 15px;
+}
+
+.house-canvas {
   position: relative;
-  margin: 0 auto;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   overflow: hidden;
