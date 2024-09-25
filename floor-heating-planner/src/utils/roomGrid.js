@@ -17,8 +17,8 @@ export const createRoomGrid = (dimensions, gridSize = 0.1) => {
     throw new Error(`Invalid dimensions: ${dimensions}`);
   }
 
-  const rows = Math.floor(length / gridSize);
-  const cols = Math.floor(width / gridSize);
+  const rows = Math.floor(width / gridSize); // Note: rows correspond to width
+  const cols = Math.floor(length / gridSize); // Note: cols correspond to length
   const grid = Array.from({ length: rows }, () => Array(cols).fill(0));
   return grid;
 };
@@ -56,11 +56,6 @@ export const addObstaclesToGrid = (grid, obstacles) => {
  * @returns {Array<Array<number>>} - The updated grid with passageways added.
  */
 export const addPassagewaysToGrid = (grid, passageways, dimensions, gridSize = 0.1) => {
-  // Remove or comment out unused variables
-  // const [lengthStr, widthStr] = dimensions.split('x').map((s) => s.trim());
-  // const length = parseFloat(lengthStr.replace(/[^\d.]/g, ''));
-  // const width = parseFloat(widthStr.replace(/[^\d.]/g, ''));
-
   const rows = grid.length;
   const cols = grid[0].length;
 
@@ -116,7 +111,7 @@ export const applyShapeMaskToGrid = (grid, shapeMask) => {
   // Initialize a new grid with all cells marked as unavailable (-1)
   const newGrid = grid.map((row) => row.map(() => -1));
 
-  // Use a flood fill algorithm or polygon fill algorithm to mark the cells within the shape
+  // Use a polygon fill algorithm to mark the cells within the shape
   // For simplicity, here's a placeholder that assumes shapeMask is a rectangle
   shapeMask.forEach(({ x, y }) => {
     if (newGrid[y] && newGrid[y][x] !== undefined) {
