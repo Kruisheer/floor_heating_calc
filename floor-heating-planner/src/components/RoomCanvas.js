@@ -1,7 +1,7 @@
 // src/components/RoomCanvas.js
 
-import React from 'react';
-import { Stage, Layer, Line, Rect } from 'react-konva';
+import React, { useEffect, useState } from 'react';
+import { Stage, Layer, Line, Rect, Circle } from 'react-konva';
 
 const RoomCanvas = ({
   grid,
@@ -11,12 +11,20 @@ const RoomCanvas = ({
   cellSizeX,
   cellSizeY,
   passageways = [],
+  loopSpacing,
+  startingPoint,
 }) => {
   // Generate points for the Line component
   const linePoints = path.flatMap((point) => [
     point.x * cellSizeX + cellSizeX / 2,
     point.y * cellSizeY + cellSizeY / 2,
   ]);
+
+  // Visualize Starting Point
+  const startingPointPx = [
+    startingPoint.x * cellSizeX + cellSizeX / 2,
+    startingPoint.y * cellSizeY + cellSizeY / 2,
+  ];
 
   return (
     <Stage width={roomWidth} height={roomHeight}>
@@ -113,6 +121,16 @@ const RoomCanvas = ({
           strokeWidth={2}
           lineCap="round"
           lineJoin="round"
+        />
+
+        {/* Draw Starting Point Indicator */}
+        <Circle
+          x={startingPointPx[0]}
+          y={startingPointPx[1]}
+          radius={5}
+          fill="blue"
+          stroke="black"
+          strokeWidth={1}
         />
       </Layer>
     </Stage>
