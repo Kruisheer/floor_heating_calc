@@ -1,7 +1,7 @@
 // src/utils/pathGenerator.js
 
 /**
- * Generates a heating loop path for underfloor heating using a spiral filling strategy.
+ * Generates a heating loop path for underfloor heating using a double spiral pattern.
  *
  * @param {Array<Array<number>>} grid - 2D array representing the floor plan grid. Cells with value -1 are obstacles.
  * @param {Object} options - Configuration options.
@@ -23,17 +23,15 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   // Create a copy of the grid to mark visited cells
   const visited = grid.map((row) => row.map((cell) => (cell === -1 ? -1 : 0)));
 
-  // Direction vectors: right, down, left, up
-  const dirX = [1, 0, -1, 0];
-  const dirY = [0, 1, 0, -1];
+  // Initialize boundaries
+  let top = 0;
+  let bottom = rows - 1;
+  let left = 0;
+  let right = cols - 1;
 
   let x = startPoint.x;
   let y = startPoint.y;
-  let dir = 0; // Start moving right
-  let steps = 1;
-  let changeDir = 0;
 
-  // Add the starting point to the path
   if (visited[y][x] !== -1) {
     path.push({ x, y });
     visited[y][x] = 1;
@@ -41,93 +39,122 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     throw new Error('Starting point is an obstacle.');
   }
 
-  while (true) {
-    let moved = false;
-    for (let i = 0; i < steps; i++) {
-      x += dirX[dir];
-      y += dirY[dir];
+  let layer = 0;
 
-      // Check boundaries and obstacles
-      if (
-        x >= 0 &&
-        x < cols &&
-        y >= 0 &&
-        y < rows &&
-        visited[y][x] === 0 &&
-        grid[y][x] !== -1
-      ) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        moved = true;
-      } else {
-        // Adjust position back if we hit an obstacle or boundary
-        x -= dirX[dir];
-        y -= dirY[dir];
-        break;
-      }
-
-      // Calculate total pipe length
-      if (path.length >= 2) {
-        const totalPipeLength = calculateSegmentLength(path, gridSize);
-        if (totalPipeLength > maxPipeLength) {
-          // Truncate the path to fit within maxPipeLength
-          const allowablePoints = getAllowablePoints(path, maxPipeLength, gridSize);
-          return {
-            path: allowablePoints,
-            totalPipeLength: calculateSegmentLength(allowablePoints, gridSize),
-          };
-        }
+  // Inward Spiral
+  while (left + layer <= right - layer && top + layer <= bottom - layer) {
+    // Right
+    for (let currentX = left + layer; currentX <= right - layer; currentX++) {
+      let currentY = top + layer;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
       }
     }
 
-    // Change direction
-    dir = (dir + 1) % 4;
-    changeDir++;
-
-    // Increase steps after every two direction changes
-    if (changeDir % 2 === 0) {
-      steps++;
-    }
-
-    if (!moved) {
-      // If we didn't move, check for unvisited cells
-      const nextCell = findNearestUnvisitedCell(visited, grid);
-      if (nextCell) {
-        x = nextCell.x;
-        y = nextCell.y;
-        path.push({ x, y });
-        visited[y][x] = 1;
-      } else {
-        break; // No more cells to visit
+    // Down
+    for (let currentY = top + layer + 1; currentY <= bottom - layer; currentY++) {
+      let currentX = right - layer;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
       }
     }
+
+    // Left
+    for (let currentX = right - layer - 1; currentX >= left + layer; currentX--) {
+      let currentY = bottom - layer;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Up
+    for (let currentY = bottom - layer - 1; currentY >= top + layer + 1; currentY--) {
+      let currentX = left + layer;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Check pipe length
+    let totalPipeLength = calculateSegmentLength(path, gridSize);
+    if (totalPipeLength > maxPipeLength) {
+      const allowablePoints = getAllowablePoints(path, maxPipeLength, gridSize);
+      return {
+        path: allowablePoints,
+        totalPipeLength: calculateSegmentLength(allowablePoints, gridSize),
+      };
+    }
+
+    layer++; // Move to the next inner layer
+    if (layer > Math.min(cols, rows) / 2) break;
+  }
+
+  // Outward Spiral (filling the gaps)
+  layer--; // Adjust layer for outward spiral
+
+  while (layer >= 0) {
+    // Right
+    for (let currentX = left + layer + 1; currentX <= right - layer - 1; currentX++) {
+      let currentY = top + layer + 1;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Down
+    for (let currentY = top + layer + 2; currentY <= bottom - layer - 1; currentY++) {
+      let currentX = right - layer - 1;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Left
+    for (let currentX = right - layer - 2; currentX >= left + layer + 1; currentX--) {
+      let currentY = bottom - layer - 1;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Up
+    for (let currentY = bottom - layer - 2; currentY >= top + layer + 2; currentY--) {
+      let currentX = left + layer + 1;
+      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
+        path.push({ x: currentX, y: currentY });
+        visited[currentY][currentX] = 1;
+      }
+    }
+
+    // Check pipe length
+    let totalPipeLength = calculateSegmentLength(path, gridSize);
+    if (totalPipeLength > maxPipeLength) {
+      const allowablePoints = getAllowablePoints(path, maxPipeLength, gridSize);
+      return {
+        path: allowablePoints,
+        totalPipeLength: calculateSegmentLength(allowablePoints, gridSize),
+      };
+    }
+
+    layer--; // Move to the next outer layer
   }
 
   // Attempt to return to the starting point
-  const returnPath = findPathToStart(x, y, startPoint, grid, visited);
+  const lastPoint = path[path.length - 1];
+  const returnPath = findPathToStart(lastPoint.x, lastPoint.y, startPoint, grid, visited);
   if (returnPath) {
     path.push(...returnPath);
   }
 
   const totalPipeLength = calculateSegmentLength(path, gridSize);
   return { path, totalPipeLength };
-};
-
-/**
- * Finds the nearest unvisited cell to continue the spiral.
- * @param {Array<Array<number>>} visited - The grid with visited cells marked.
- * @param {Array<Array<number>>} grid - The original grid.
- * @returns {Object|null} - The coordinates of the nearest unvisited cell or null if none found.
- */
-const findNearestUnvisitedCell = (visited, grid) => {
-  for (let y = 0; y < visited.length; y++) {
-    for (let x = 0; x < visited[0].length; x++) {
-      if (visited[y][x] === 0 && grid[y][x] !== -1) {
-        return { x, y };
-      }
-    }
-  }
-  return null;
 };
 
 /**
