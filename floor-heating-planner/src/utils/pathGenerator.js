@@ -44,109 +44,122 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   let layer = 0;
 
   // Inward Spiral with configurable loop spacing
-  while (left <= right && top <= bottom) {
-    // Right
+  while (left + layer <= right - layer && top + layer <= bottom - layer) {
+    // Move Right
     for (x = left + layer; x <= right - layer; x++) {
       y = top + layer;
       if (grid[y][x] !== -1 && visited[y][x] === 0) {
         path.push({ x, y });
         visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
       }
     }
-    // Down
+
+    // Move Down
     for (y = top + layer + 1; y <= bottom - layer; y++) {
       x = right - layer;
       if (grid[y][x] !== -1 && visited[y][x] === 0) {
         path.push({ x, y });
         visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
       }
     }
-    // Left
+
+    // Move Left
     for (x = right - layer - 1; x >= left + layer; x--) {
       y = bottom - layer;
       if (grid[y][x] !== -1 && visited[y][x] === 0) {
         path.push({ x, y });
         visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
       }
     }
-    // Up
+
+    // Move Up
     for (y = bottom - layer - 1; y >= top + layer + 1; y--) {
       x = left + layer;
       if (grid[y][x] !== -1 && visited[y][x] === 0) {
         path.push({ x, y });
         visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
       }
     }
 
-    // Check pipe length
-    let totalPipeLength = calculateSegmentLength(path, gridSize);
-    if (totalPipeLength > maxPipeLength) {
-      const allowablePoints = getAllowablePoints(path, maxPipeLength, gridSize);
-      return {
-        path: allowablePoints,
-        totalPipeLength: calculateSegmentLength(allowablePoints, gridSize),
-      };
-    }
-
-    layer += loopSpacing; // Move to the next inner layer based on loop spacing
-    if (layer > Math.min(cols, rows) / 2) break;
+    layer += loopSpacing;
   }
 
-  // Now, create the outward spiral
+  // Outward Spiral (Double Spiral)
   layer -= loopSpacing;
-
   while (layer >= 0) {
-    // Outward spiral (filling the gaps)
-    // Right
-    for (x = left + layer + loopSpacing; x <= right - layer - loopSpacing; x++) {
-      y = top + layer + loopSpacing;
+    // Move Right
+    for (x = left + layer; x <= right - layer; x++) {
+      y = top + layer;
       if (grid[y][x] !== -1 && visited[y][x] === 0) {
         path.push({ x, y });
         visited[y][x] = 1;
-      }
-    }
-    // Down
-    for (y = top + layer + loopSpacing + 1; y <= bottom - layer - loopSpacing; y++) {
-      x = right - layer - loopSpacing;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-      }
-    }
-    // Left
-    for (x = right - layer - loopSpacing - 1; x >= left + layer + loopSpacing; x--) {
-      y = bottom - layer - loopSpacing;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-      }
-    }
-    // Up
-    for (y = bottom - layer - loopSpacing - 1; y >= top + layer + loopSpacing + 1; y--) {
-      x = left + layer + loopSpacing;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
       }
     }
 
-    // Check pipe length
-    let totalPipeLength = calculateSegmentLength(path, gridSize);
-    if (totalPipeLength > maxPipeLength) {
-      const allowablePoints = getAllowablePoints(path, maxPipeLength, gridSize);
-      return {
-        path: allowablePoints,
-        totalPipeLength: calculateSegmentLength(allowablePoints, gridSize),
-      };
+    // Move Down
+    for (y = top + layer + 1; y <= bottom - layer; y++) {
+      x = right - layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
+      }
     }
 
-    layer -= loopSpacing; // Move to the next outer layer based on loop spacing
+    // Move Left
+    for (x = right - layer - 1; x >= left + layer; x--) {
+      y = bottom - layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
+      }
+    }
+
+    // Move Up
+    for (y = bottom - layer - 1; y >= top + layer + 1; y--) {
+      x = left + layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
+        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+          return truncatePath(path, maxPipeLength, gridSize);
+        }
+      }
+    }
+
+    layer -= loopSpacing;
   }
 
-  // Return to the starting point if possible
-  const returnPath = findPathToStart(x, y, startPoint, grid, visited);
+  // Attempt to return to the starting point
+  const returnPath = findPathToStart(path[path.length - 1], startPoint, grid, visited);
   if (returnPath) {
-    path.push(...returnPath);
+    returnPath.forEach((point) => {
+      path.push(point);
+      if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+        path.pop(); // Remove the last point if it exceeds max length
+        return;
+      }
+    });
   }
 
   const totalPipeLength = calculateSegmentLength(path, gridSize);
@@ -154,21 +167,73 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 };
 
 /**
+ * Calculates the length of a path segment.
+ *
+ * @param {Array<{ x: number, y: number }>} segment - Array of points representing the path segment.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {number} - Length of the path segment in meters.
+ */
+const calculateSegmentLength = (segment, gridSize) => {
+  if (segment.length < 2) {
+    return 0;
+  }
+
+  let length = 0;
+  for (let i = 1; i < segment.length; i++) {
+    const dx = segment[i].x - segment[i - 1].x;
+    const dy = segment[i].y - segment[i - 1].y;
+    length += Math.sqrt(dx * dx + dy * dy) * gridSize;
+  }
+  return length;
+};
+
+/**
+ * Truncates the path to fit within the maximum allowed pipe length.
+ *
+ * @param {Array<{ x: number, y: number }>} path - Current path.
+ * @param {number} maxPipeLength - Maximum allowed pipe length in meters.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {Object} - Truncated path and its length.
+ */
+const truncatePath = (path, maxPipeLength, gridSize) => {
+  let length = 0;
+  const truncatedPath = [path[0]];
+
+  for (let i = 1; i < path.length; i++) {
+    const dx = path[i].x - path[i - 1].x;
+    const dy = path[i].y - path[i - 1].y;
+    const segmentLength = Math.sqrt(dx * dx + dy * dy) * gridSize;
+
+    if (length + segmentLength > maxPipeLength) {
+      break;
+    }
+
+    length += segmentLength;
+    truncatedPath.push(path[i]);
+  }
+
+  return { path: truncatedPath, totalPipeLength: length };
+};
+
+/**
  * Finds a path back to the starting point using BFS.
- * @param {number} x - Current x-coordinate.
- * @param {number} y - Current y-coordinate.
- * @param {Object} startPoint - The starting point { x: number, y: number }.
+ *
+ * @param {{ x: number, y: number }} currentPoint - Current point in the path.
+ * @param {{ x: number, y: number }} startPoint - Starting point to return to.
  * @param {Array<Array<number>>} grid - The grid.
  * @param {Array<Array<number>>} visited - The grid with visited cells marked.
- * @returns {Array<Object>|null} - The path to the starting point or null if none found.
+ *
+ * @returns {Array<{ x: number, y: number }>|null} - The path back to the starting point or null if none found.
  */
-const findPathToStart = (x, y, startPoint, grid, visited) => {
+const findPathToStart = (currentPoint, startPoint, grid, visited) => {
   const queue = [];
   const cameFrom = {};
   const key = (x, y) => `${x},${y}`;
 
-  queue.push({ x, y });
-  cameFrom[key(x, y)] = null;
+  queue.push(currentPoint);
+  cameFrom[key(currentPoint.x, currentPoint.y)] = null;
 
   while (queue.length > 0) {
     const current = queue.shift();
@@ -181,7 +246,7 @@ const findPathToStart = (x, y, startPoint, grid, visited) => {
         path.unshift({ x: cx, y: cy });
         currKey = cameFrom[currKey];
       }
-      return path.slice(1); // Exclude current position
+      return path.slice(1); // Exclude the current point
     }
 
     const directions = [
@@ -211,59 +276,4 @@ const findPathToStart = (x, y, startPoint, grid, visited) => {
   }
 
   return null;
-};
-
-/**
- * Calculates the length of a path segment.
- *
- * @param {Array<{ x: number, y: number }>} segment - Array of points representing the path segment.
- * @param {number} gridSize - Physical size of each grid cell in meters.
- *
- * @returns {number} - Length of the path segment in meters.
- */
-const calculateSegmentLength = (segment, gridSize) => {
-  if (segment.length < 2) {
-    return 0;
-  }
-
-  let length = 0;
-  for (let i = 1; i < segment.length; i++) {
-    const dx = segment[i].x - segment[i - 1].x;
-    const dy = segment[i].y - segment[i - 1].y;
-    length += Math.sqrt(dx * dx + dy * dy) * gridSize;
-  }
-  return length;
-};
-
-/**
- * Determines the allowable number of points to stay within the remaining length.
- *
- * @param {Array<{ x: number, y: number }>} segment - The current segment of points.
- * @param {number} remainingLength - Remaining allowable length in meters.
- * @param {number} gridSize - Physical size of each grid cell in meters.
- *
- * @returns {Array<{ x: number, y: number }>} - Truncated array of points within the remaining length.
- */
-const getAllowablePoints = (segment, remainingLength, gridSize) => {
-  if (segment.length < 2) {
-    return segment;
-  }
-
-  let length = 0;
-  const allowablePoints = [segment[0]]; // Start with the first point
-
-  for (let i = 1; i < segment.length; i++) {
-    const dx = segment[i].x - segment[i - 1].x;
-    const dy = segment[i].y - segment[i - 1].y;
-    const segmentLength = Math.sqrt(dx * dx + dy * dy) * gridSize;
-
-    if (length + segmentLength > remainingLength) {
-      break;
-    }
-
-    length += segmentLength;
-    allowablePoints.push(segment[i]);
-  }
-
-  return allowablePoints;
 };
