@@ -3,7 +3,11 @@
 import React, { useEffect } from 'react';
 import Draggable from 'react-draggable';
 import RoomCanvas from './RoomCanvas';
-import { createRoomGrid, addObstaclesToGrid, addPassagewaysToGrid } from '../utils/roomGrid';
+import {
+  createRoomGrid,
+  addObstaclesToGrid,
+  addPassagewaysToGrid,
+} from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
 import './DraggableRoom.css';
 
@@ -13,8 +17,11 @@ const DraggableRoom = ({
   obstacles = [],
   passageways = [],
   position = { x: 0, y: 0 },
+  loopSpacing = 1, // Default loop spacing
+  startingPoint = { x: 0, y: 0 }, // Default starting point
   onDragStop,
   onPipeLengthCalculated,
+  onStartingPointChange, // Callback to update starting point
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
   const [length, width] = dimensions.split('x').map(Number);
@@ -41,13 +48,11 @@ const DraggableRoom = ({
     gridResolution
   );
 
-  // Define loop spacing for consistent pipe density
-  const loopSpacing = Math.ceil(grid.length / 10); // Adjust as needed for consistency
-
   // Generate the heating loop path
   const { path, totalPipeLength } = generateHeatingLoopPath(gridWithObstacles, {
     gridSize: gridResolution,
     loopSpacing: loopSpacing,
+    startPoint: startingPoint,
   });
 
   // Adjust cell size for the RoomCanvas
@@ -60,6 +65,13 @@ const DraggableRoom = ({
       onPipeLengthCalculated(name, totalPipeLength);
     }
   }, [onPipeLengthCalculated, name, totalPipeLength]);
+
+  // Handle starting point updates from RoomCanvas
+  const handleStartingPointSet = (newPoint) => {
+    if (onStartingPointChange) {
+      onStartingPointChange(name, newPoint);
+    }
+  };
 
   return (
     <Draggable
@@ -84,6 +96,9 @@ const DraggableRoom = ({
           cellSizeX={cellSizeX}
           cellSizeY={cellSizeY}
           passageways={passageways}
+          loopSpacing={loopSpacing}
+          startingPoint={startingPoint}
+          onSetStartingPoint={handleStartingPointSet}
         />
       </div>
     </Draggable>
