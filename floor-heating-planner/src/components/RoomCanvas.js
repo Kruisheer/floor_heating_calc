@@ -1,6 +1,6 @@
 // src/components/RoomCanvas.js
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Stage, Layer, Line, Rect, Circle } from 'react-konva';
 
 const RoomCanvas = ({
@@ -13,6 +13,7 @@ const RoomCanvas = ({
   passageways = [],
   loopSpacing,
   startingPoint,
+  onSetStartingPoint, // Callback for interactive starting point setting
 }) => {
   // Generate points for the Line component
   const linePoints = path.flatMap((point) => [
@@ -26,8 +27,21 @@ const RoomCanvas = ({
     startingPoint.y * cellSizeY + cellSizeY / 2,
   ];
 
+  // Handle click to set starting point
+  const handleStageClick = (e) => {
+    const stage = e.target.getStage();
+    const pointerPosition = stage.getPointerPosition();
+    const x = Math.floor(pointerPosition.x / cellSizeX);
+    const y = Math.floor(pointerPosition.y / cellSizeY);
+
+    // Ensure the clicked cell is within the grid and not an obstacle
+    if (grid[y] && grid[y][x] !== -1) {
+      onSetStartingPoint({ x, y });
+    }
+  };
+
   return (
-    <Stage width={roomWidth} height={roomHeight}>
+    <Stage width={roomWidth} height={roomHeight} onClick={handleStageClick}>
       <Layer>
         {/* Draw Room Boundaries */}
         <Line
