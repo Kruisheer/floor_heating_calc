@@ -10,21 +10,20 @@
   cursor: grab;
   padding: 0;
   margin: 0;
-  }
-  
-  .draggable-room:hover {
-    transform: scale(1.05); /* Slightly enlarge on hover */
-  }
-  
-  .draggable-room h4 {
-    margin: 0 0 10px 0;
-    font-size: 1.2em;
-    color: #0f5132;
-  }
-  
-  .draggable-room p {
-    margin: 0;
-    font-size: 1em;
-    color: #134e4a;
-  }
-  
+}
+
+.draggable-room:hover {
+  transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+.draggable-room h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+  color: #0f5132;
+}
+
+.draggable-room p {
+  margin: 0;
+  font-size: 1em;
+  color: #134e4a;
+}
