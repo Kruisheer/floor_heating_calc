@@ -25,12 +25,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   // Create a copy of the grid to mark visited cells
   const visited = grid.map((row) => row.map((cell) => (cell === -1 ? -1 : 0)));
 
-  // Initialize boundaries
-  let top = 0;
-  let bottom = rows - 1;
-  let left = 0;
-  let right = cols - 1;
-
+  // Initialize starting point
   let x = startPoint.x;
   let y = startPoint.y;
 
@@ -41,116 +36,55 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     throw new Error('Starting point is an obstacle.');
   }
 
-  let layer = 0;
+  // Initialize directions: Right, Down, Left, Up
+  const directions = [
+    { dx: 1, dy: 0 }, // Right
+    { dx: 0, dy: 1 }, // Down
+    { dx: -1, dy: 0 }, // Left
+    { dx: 0, dy: -1 }, // Up
+  ];
+  let dirIndex = 0; // Start moving right
 
-  // Inward Spiral with configurable loop spacing
-  while (left + layer <= right - layer && top + layer <= bottom - layer) {
-    // Move Right
-    for (x = left + layer; x <= right - layer; x++) {
-      y = top + layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+  // Initialize steps for current direction
+  let steps = loopSpacing;
+
+  // Spiral generation
+  while (steps > 0) {
+    for (let i = 0; i < 2; i++) { // Two turns for each layer
+      for (let j = 0; j < steps; j++) {
+        x += directions[dirIndex].dx;
+        y += directions[dirIndex].dy;
+
+        // Check boundaries and obstacles
+        if (
+          x < 0 ||
+          x >= cols ||
+          y < 0 ||
+          y >= rows ||
+          grid[y][x] === -1 ||
+          visited[y][x] === 1
+        ) {
+          continue; // Skip invalid or already visited cells
+        }
+
+        // Add to path
         path.push({ x, y });
         visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
+
+        // Check pipe length
+        const currentLength = calculateSegmentLength(path, gridSize);
+        if (currentLength > maxPipeLength) {
           return truncatePath(path, maxPipeLength, gridSize);
         }
       }
+      // Change direction
+      dirIndex = (dirIndex + 1) % 4;
     }
-
-    // Move Down
-    for (y = top + layer + 1; y <= bottom - layer; y++) {
-      x = right - layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    // Move Left
-    for (x = right - layer - 1; x >= left + layer; x--) {
-      y = bottom - layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    // Move Up
-    for (y = bottom - layer - 1; y >= top + layer + 1; y--) {
-      x = left + layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    layer += loopSpacing;
+    // Increase steps after completing two directions
+    steps += loopSpacing;
   }
 
-  // Outward Spiral (Double Spiral)
-  layer -= loopSpacing;
-  while (layer >= 0) {
-    // Move Right
-    for (x = left + layer; x <= right - layer; x++) {
-      y = top + layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    // Move Down
-    for (y = top + layer + 1; y <= bottom - layer; y++) {
-      x = right - layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    // Move Left
-    for (x = right - layer - 1; x >= left + layer; x--) {
-      y = bottom - layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    // Move Up
-    for (y = bottom - layer - 1; y >= top + layer + 1; y--) {
-      x = left + layer;
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-        if (calculateSegmentLength(path, gridSize) > maxPipeLength) {
-          return truncatePath(path, maxPipeLength, gridSize);
-        }
-      }
-    }
-
-    layer -= loopSpacing;
-  }
-
-  // Attempt to return to the starting point
+  // Attempt to close the loop by finding a path back to the start
   const returnPath = findPathToStart(path[path.length - 1], startPoint, grid, visited);
   if (returnPath) {
     returnPath.forEach((point) => {
