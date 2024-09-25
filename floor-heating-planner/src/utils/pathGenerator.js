@@ -6,6 +6,7 @@
  * @param {Array<Array<number>>} grid - 2D array representing the floor plan grid. Cells with value -1 are obstacles.
  * @param {Object} options - Configuration options.
  * @param {number} [options.gridSize=0.1] - Physical size of each grid cell in meters.
+ * @param {number} [options.loopSpacing=1] - Spacing between loops in grid units.
  * @param {Object} [options.startPoint] - Starting point for the loop { x: number, y: number }.
  * @param {number} [options.maxPipeLength=Infinity] - Maximum allowed pipe length in meters.
  *
@@ -14,6 +15,7 @@
 export const generateHeatingLoopPath = (grid, options = {}) => {
   const gridSize = options.gridSize || 0.1; // in meters (default is 10 cm)
   const maxPipeLength = options.maxPipeLength || Infinity; // in meters
+  const loopSpacing = options.loopSpacing || 1; // in grid units
   const startPoint = options.startPoint || { x: 0, y: 0 }; // Start near the collector
 
   const rows = grid.length;
@@ -41,41 +43,38 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
   let layer = 0;
 
-  // Inward Spiral
-  while (left + layer <= right - layer && top + layer <= bottom - layer) {
+  // Inward Spiral with configurable loop spacing
+  while (left <= right && top <= bottom) {
     // Right
-    for (let currentX = left + layer; currentX <= right - layer; currentX++) {
-      let currentY = top + layer;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (x = left + layer; x <= right - layer; x++) {
+      y = top + layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Down
-    for (let currentY = top + layer + 1; currentY <= bottom - layer; currentY++) {
-      let currentX = right - layer;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (y = top + layer + 1; y <= bottom - layer; y++) {
+      x = right - layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Left
-    for (let currentX = right - layer - 1; currentX >= left + layer; currentX--) {
-      let currentY = bottom - layer;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (x = right - layer - 1; x >= left + layer; x--) {
+      y = bottom - layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Up
-    for (let currentY = bottom - layer - 1; currentY >= top + layer + 1; currentY--) {
-      let currentX = left + layer;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (y = bottom - layer - 1; y >= top + layer + 1; y--) {
+      x = left + layer;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
 
@@ -89,47 +88,45 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
       };
     }
 
-    layer++; // Move to the next inner layer
+    layer += loopSpacing; // Move to the next inner layer based on loop spacing
     if (layer > Math.min(cols, rows) / 2) break;
   }
 
-  // Outward Spiral (filling the gaps)
-  layer--; // Adjust layer for outward spiral
+  // Now, create the outward spiral
+  layer -= loopSpacing;
 
   while (layer >= 0) {
+    // Outward spiral (filling the gaps)
     // Right
-    for (let currentX = left + layer + 1; currentX <= right - layer - 1; currentX++) {
-      let currentY = top + layer + 1;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (x = left + layer + loopSpacing; x <= right - layer - loopSpacing; x++) {
+      y = top + layer + loopSpacing;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Down
-    for (let currentY = top + layer + 2; currentY <= bottom - layer - 1; currentY++) {
-      let currentX = right - layer - 1;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (y = top + layer + loopSpacing + 1; y <= bottom - layer - loopSpacing; y++) {
+      x = right - layer - loopSpacing;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Left
-    for (let currentX = right - layer - 2; currentX >= left + layer + 1; currentX--) {
-      let currentY = bottom - layer - 1;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (x = right - layer - loopSpacing - 1; x >= left + layer + loopSpacing; x--) {
+      y = bottom - layer - loopSpacing;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
-
     // Up
-    for (let currentY = bottom - layer - 2; currentY >= top + layer + 2; currentY--) {
-      let currentX = left + layer + 1;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
+    for (y = bottom - layer - loopSpacing - 1; y >= top + layer + loopSpacing + 1; y--) {
+      x = left + layer + loopSpacing;
+      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+        path.push({ x, y });
+        visited[y][x] = 1;
       }
     }
 
@@ -143,12 +140,11 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
       };
     }
 
-    layer--; // Move to the next outer layer
+    layer -= loopSpacing; // Move to the next outer layer based on loop spacing
   }
 
-  // Attempt to return to the starting point
-  const lastPoint = path[path.length - 1];
-  const returnPath = findPathToStart(lastPoint.x, lastPoint.y, startPoint, grid, visited);
+  // Return to the starting point if possible
+  const returnPath = findPathToStart(x, y, startPoint, grid, visited);
   if (returnPath) {
     path.push(...returnPath);
   }
