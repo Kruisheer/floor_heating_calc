@@ -16,9 +16,17 @@ const HouseCanvas = () => {
   // State to track pipe lengths for rooms
   const [pipeLengths, setPipeLengths] = useState({});
 
-  // State for configurable parameters
-  const [loopSpacing, setLoopSpacing] = useState(1); // Default spacing: 1 grid unit
-  const [startingPoint, setStartingPoint] = useState({ x: 0, y: 0 }); // Default starting point
+  // State for configurable parameters per room
+  const [configurations, setConfigurations] = useState(() => {
+    const initialConfig = {};
+    rooms.forEach((room) => {
+      initialConfig[room.name] = {
+        loopSpacing: 1, // Default loop spacing
+        startingPoint: { x: 0, y: 0 }, // Default starting point
+      };
+    });
+    return initialConfig;
+  });
 
   // Function to handle pipe length updates from DraggableRoom
   const handlePipeLengthCalculated = (roomName, pipeLength) => {
@@ -28,11 +36,25 @@ const HouseCanvas = () => {
     }));
   };
 
-  // Function to handle starting point selection
+  // Function to handle starting point selection per room
   const handleStartingPointChange = (roomName, newStartingPoint) => {
-    setStartingPoint((prev) => ({
+    setConfigurations((prev) => ({
       ...prev,
-      [roomName]: newStartingPoint,
+      [roomName]: {
+        ...prev[roomName],
+        startingPoint: newStartingPoint,
+      },
+    }));
+  };
+
+  // Function to handle loop spacing change per room
+  const handleLoopSpacingChange = (roomName, newSpacing) => {
+    setConfigurations((prev) => ({
+      ...prev,
+      [roomName]: {
+        ...prev[roomName],
+        loopSpacing: newSpacing,
+      },
     }));
   };
 
@@ -56,67 +78,80 @@ const HouseCanvas = () => {
       {/* Configuration Sidebar */}
       <div className="configuration-sidebar">
         <h3>Configuration Settings</h3>
+        {rooms.map((room, index) => (
+          <div key={index} className="config-item">
+            <h4>{room.name}</h4>
+            {/* Loop Spacing Control */}
+            <label htmlFor={`loopSpacing-${room.name}`}>
+              Loop Spacing (grid units):
+            </label>
+            <input
+              type="number"
+              id={`loopSpacing-${room.name}`}
+              min="1"
+              max="10"
+              value={configurations[room.name].loopSpacing}
+              onChange={(e) =>
+                handleLoopSpacingChange(
+                  room.name,
+                  parseInt(e.target.value, 10) || 1
+                )
+              }
+            />
 
-        {/* Loop Spacing Control */}
-        <div className="config-item">
-          <label htmlFor="loopSpacing">Loop Spacing (grid units): </label>
-          <input
-            type="number"
-            id="loopSpacing"
-            min="1"
-            max="10"
-            value={loopSpacing}
-            onChange={(e) => setLoopSpacing(parseInt(e.target.value, 10) || 1)}
-          />
-        </div>
+            {/* Starting Point Controls */}
+            <div className="starting-point-controls">
+              <label>Starting Point:</label>
+              <div>
+                <label htmlFor={`startingPointX-${room.name}`}>X:</label>
+                <input
+                  type="number"
+                  id={`startingPointX-${room.name}`}
+                  min="0"
+                  value={configurations[room.name].startingPoint.x}
+                  onChange={(e) =>
+                    handleStartingPointChange(room.name, {
+                      ...configurations[room.name].startingPoint,
+                      x: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label htmlFor={`startingPointY-${room.name}`}>Y:</label>
+                <input
+                  type="number"
+                  id={`startingPointY-${room.name}`}
+                  min="0"
+                  value={configurations[room.name].startingPoint.y}
+                  onChange={(e) =>
+                    handleStartingPointChange(room.name, {
+                      ...configurations[room.name].startingPoint,
+                      y: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        ))}
 
-        {/* Starting Point Control */}
-        <div className="config-item">
-          <label htmlFor="startingPointX">Starting Point X (grid): </label>
-          <input
-            type="number"
-            id="startingPointX"
-            min="0"
-            value={startingPoint.x}
-            onChange={(e) =>
-              setStartingPoint((prev) => ({
-                ...prev,
-                x: parseInt(e.target.value, 10) || 0,
-              }))
-            }
-          />
-          <label htmlFor="startingPointY">Y (grid): </label>
-          <input
-            type="number"
-            id="startingPointY"
-            min="0"
-            value={startingPoint.y}
-            onChange={(e) =>
-              setStartingPoint((prev) => ({
-                ...prev,
-                y: parseInt(e.target.value, 10) || 0,
-              }))
-            }
-          />
-        </div>
-
-        {/* Optional: Reset Configurations */}
+        {/* Reset Configurations */}
         <button
           onClick={() => {
-            setLoopSpacing(1);
-            setStartingPoint({ x: 0, y: 0 });
+            const resetConfig = {};
+            rooms.forEach((room) => {
+              resetConfig[room.name] = {
+                loopSpacing: 1,
+                startingPoint: { x: 0, y: 0 },
+              };
+            });
+            setConfigurations(resetConfig);
           }}
           className="reset-button"
         >
           Reset to Default
         </button>
-      </div>
-
-      <div className="instructions">
-        <p>
-          Arrange your rooms on the canvas. Configure loop spacing and starting point as desired.
-          When you're satisfied with the layout, click "Generate Heating Plan" to proceed.
-        </p>
       </div>
 
       <div className="house-canvas-container">
@@ -153,8 +188,8 @@ const HouseCanvas = () => {
               obstacles={room.obstacles}
               passageways={room.passageways}
               position={roomPositions[room.name] || { x: 0, y: 0 }}
-              loopSpacing={loopSpacing}
-              startingPoint={startingPoint}
+              loopSpacing={configurations[room.name].loopSpacing}
+              startingPoint={configurations[room.name].startingPoint}
               onDragStop={(e, data) => {
                 setRoomPositions((prev) => ({
                   ...prev,
