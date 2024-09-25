@@ -1,13 +1,39 @@
 // src/components/pipeAlgorithm.js
 
-export const calculatePipeRequirements = (rooms) => {
-  // Example algorithm to calculate pipe lengths based on room dimensions
+import { createRoomGrid, addObstaclesToGrid, addPassagewaysToGrid } from '../utils/roomGrid';
+import { generateHeatingLoopPath } from '../utils/pathGenerator';
+import { calculatePipeLength } from '../utils/pathCalculator';
+
+export const calculatePipeRequirements = (rooms, options = {}) => {
   let totalPipeLength = 0;
+  const gridSize = options.gridSize || 0.1; // Default grid size is 0.1 meters (10 cm)
 
   rooms.forEach((room) => {
-    const [length, width] = room.dimensions.split('x').map(Number);
-    // Simple perimeter calculation as a placeholder
-    totalPipeLength += 2 * (length + width);
+    // Create grid for the room
+    let grid = createRoomGrid(room.dimensions, gridSize);
+
+    // Add obstacles if any
+    if (room.obstacles) {
+      grid = addObstaclesToGrid(grid, room.obstacles);
+    }
+
+    // Add passageways if any
+    if (room.passageways) {
+      grid = addPassagewaysToGrid(grid, room.passageways, room.dimensions, gridSize);
+    }
+
+    // Generate heating loop path
+    const { path, totalPipeLength: roomPipeLength } = generateHeatingLoopPath(grid, {
+      gridSize,
+      maxPipeLength: room.maxPipeLength || Infinity,
+      startPoint: room.startPoint,
+    });
+
+    // Update total pipe length
+    totalPipeLength += roomPipeLength;
+
+    // You can store or return the path if needed
+    room.path = path;
   });
 
   return totalPipeLength;
