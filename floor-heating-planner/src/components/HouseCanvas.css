@@ -1,6 +1,9 @@
 /* src/components/HouseCanvas.css */
 
 .house-canvas-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
@@ -13,6 +16,7 @@
 .house-canvas-container {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .room-info-sidebar {
@@ -46,6 +50,46 @@
   background-image: linear-gradient(to right, #eee 1px, transparent 1px),
     linear-gradient(to bottom, #eee 1px, transparent 1px);
   background-size: 50px 50px; /* Adjust grid size */
+}
+
+/* Configuration Sidebar Styles */
+.configuration-sidebar {
+  width: 250px; /* Same width as room-info-sidebar for consistency */
+  padding: 10px;
+  border-left: 1px solid #ccc;
+  text-align: left;
+  margin-left: 20px; /* Space between sidebars */
+  background-color: #f0f0f0;
+}
+
+.config-item {
+  margin-bottom: 15px;
+}
+
+.config-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.config-item input {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.reset-button {
+  background-color: #e74c3c;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.reset-button:hover {
+  background-color: #c0392b;
 }
 
 .next-button {
