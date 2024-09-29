@@ -1,6 +1,6 @@
 // src/components/HouseCanvas.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DraggableRoom from './DraggableRoom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './HouseCanvas.css';
