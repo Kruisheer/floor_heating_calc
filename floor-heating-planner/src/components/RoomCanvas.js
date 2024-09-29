@@ -36,7 +36,10 @@ const RoomCanvas = ({
 
     // Ensure the clicked cell is within the grid and not an obstacle
     if (grid[y] && grid[y][x] !== -1) {
+      console.log(`Setting new starting point: x=${x}, y=${y}`);
       onSetStartingPoint({ x, y });
+    } else {
+      console.warn('Clicked position is invalid or an obstacle.');
     }
   };
 
@@ -129,13 +132,15 @@ const RoomCanvas = ({
         )}
 
         {/* Draw Heating Loop Path */}
-        <Line
-          points={linePoints}
-          stroke="red"
-          strokeWidth={2}
-          lineCap="round"
-          lineJoin="round"
-        />
+        {path.length > 1 && (
+          <Line
+            points={linePoints}
+            stroke="red"
+            strokeWidth={2}
+            lineCap="round"
+            lineJoin="round"
+          />
+        )}
 
         {/* Draw Starting Point Indicator */}
         <Circle

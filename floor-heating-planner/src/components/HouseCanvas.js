@@ -52,6 +52,7 @@ const HouseCanvas = () => {
 
   // Function to handle loop spacing change per room
   const handleLoopSpacingChange = (roomName, newSpacing) => {
+    console.log(`Updating loop spacing for ${roomName}: ${newSpacing}`);
     setConfigurations((prev) => ({
       ...prev,
       [roomName]: {

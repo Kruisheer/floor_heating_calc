@@ -24,7 +24,10 @@ const DraggableRoom = ({
   onStartingPointChange, // Callback to update starting point
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
-  const [length, width] = useMemo(() => dimensions.split('x').map(Number), [dimensions]);
+  const [length, width] = useMemo(() => {
+    const dims = dimensions.split('x').map(Number);
+    return dims.length === 2 ? dims : [5, 5]; // Default to square if invalid
+  }, [dimensions]);
 
   // Define a scale factor to convert meters to pixels (adjust as needed)
   const scaleFactor = 50; // 1 meter = 50 pixels
@@ -35,7 +38,6 @@ const DraggableRoom = ({
 
   // Create the grid for the room
   const gridResolution = 0.1; // 10 cm per grid cell
-
   const grid = useMemo(() => createRoomGrid(dimensions, gridResolution), [dimensions, gridResolution]);
 
   // Add obstacles to the grid (if any)

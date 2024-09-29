@@ -43,44 +43,52 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     row.map((cell) => (cell === -1 ? -1 : 0))
   );
 
-  let top = 0;
-  let bottom = rows - 1;
-  let left = 0;
-  let right = cols - 1;
-
-  let x = startPoint.x;
-  let y = startPoint.y;
-
-  if (visited[y][x] !== -1) {
-    path.push({ x, y });
-    visited[y][x] = 1;
-    console.log('Added starting point to path');
-  } else {
-    throw new Error('Starting point is an obstacle.');
-  }
-
   let layer = 0;
   let spiralComplete = false;
 
-  while (left + layer <= right - layer && top + layer <= bottom - layer) {
-    console.log(`Processing Spiral Layer: ${layer}`);
+  // Initialize queue for BFS-based spiral
+  const queue = [];
+  queue.push({ x: startPoint.x, y: startPoint.y, layer: 0 });
+  visited[startPoint.y][startPoint.x] = 1;
+  path.push({ x: startPoint.x, y: startPoint.y });
+  console.log('Added starting point to path');
 
-    // Determine current boundaries with loopSpacing
-    const currentTop = top + layer;
-    const currentBottom = bottom - layer;
-    const currentLeft = left + layer;
-    const currentRight = right - layer;
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const { x, y, layer: currentLayer } = current;
 
-    // Move right across the top boundary
-    for (let currentX = currentLeft + 1; currentX <= currentRight; currentX++) {
-      let currentY = currentTop;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
-        console.log('Added point:', { x: currentX, y: currentY });
+    // Define the directions: right, down, left, up
+    const directions = [
+      { dx: 1, dy: 0 }, // Right
+      { dx: 0, dy: 1 }, // Down
+      { dx: -1, dy: 0 }, // Left
+      { dx: 0, dy: -1 }, // Up
+    ];
+
+    for (const { dx, dy } of directions) {
+      for (let step = 1; step <= loopSpacing; step++) {
+        const nx = x + dx * step;
+        const ny = y + dy * step;
+
+        // Check boundaries
+        if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
+          spiralComplete = true;
+          break;
+        }
+
+        // Check for obstacles and visited cells
+        if (grid[ny][nx] === -1 || visited[ny][nx] === 1) {
+          spiralComplete = true;
+          break;
+        }
+
+        // Add to path
+        path.push({ x: nx, y: ny });
+        visited[ny][nx] = 1;
+        console.log('Added point:', { x: nx, y: ny });
 
         // Check pipe length
-        let totalPipeLength = calculateSegmentLength(path, gridSize);
+        const totalPipeLength = calculateSegmentLength(path, gridSize);
         if (totalPipeLength > maxPipeLength) {
           console.log('Max pipe length exceeded during spiral');
           const allowablePoints = getAllowablePoints(
@@ -96,114 +104,19 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
             ),
           };
         }
+
+        // Enqueue the new point for further expansion
+        queue.push({ x: nx, y: ny, layer: currentLayer + 1 });
+      }
+
+      if (spiralComplete) {
+        break;
       }
     }
 
-    // Move down along the right boundary
-    for (let currentY = currentTop + 1; currentY <= currentBottom; currentY++) {
-      let currentX = currentRight;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
-        console.log('Added point:', { x: currentX, y: currentY });
-
-        // Check pipe length
-        let totalPipeLength = calculateSegmentLength(path, gridSize);
-        if (totalPipeLength > maxPipeLength) {
-          console.log('Max pipe length exceeded during spiral');
-          const allowablePoints = getAllowablePoints(
-            path,
-            maxPipeLength,
-            gridSize
-          );
-          return {
-            path: allowablePoints,
-            totalPipeLength: calculateSegmentLength(
-              allowablePoints,
-              gridSize
-            ),
-          };
-        }
-      }
-    }
-
-    // Move left across the bottom boundary
-    for (
-      let currentX = currentRight - 1;
-      currentX >= currentLeft;
-      currentX--
-    ) {
-      let currentY = currentBottom;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
-        console.log('Added point:', { x: currentX, y: currentY });
-
-        // Check pipe length
-        let totalPipeLength = calculateSegmentLength(path, gridSize);
-        if (totalPipeLength > maxPipeLength) {
-          console.log('Max pipe length exceeded during spiral');
-          const allowablePoints = getAllowablePoints(
-            path,
-            maxPipeLength,
-            gridSize
-          );
-          return {
-            path: allowablePoints,
-            totalPipeLength: calculateSegmentLength(
-              allowablePoints,
-              gridSize
-            ),
-          };
-        }
-      }
-    }
-
-    // Move up along the left boundary
-    for (
-      let currentY = currentBottom - 1;
-      currentY >= currentTop + 1;
-      currentY--
-    ) {
-      let currentX = currentLeft;
-      if (grid[currentY][currentX] !== -1 && visited[currentY][currentX] === 0) {
-        path.push({ x: currentX, y: currentY });
-        visited[currentY][currentX] = 1;
-        console.log('Added point:', { x: currentX, y: currentY });
-
-        // Check pipe length
-        let totalPipeLength = calculateSegmentLength(path, gridSize);
-        if (totalPipeLength > maxPipeLength) {
-          console.log('Max pipe length exceeded during spiral');
-          const allowablePoints = getAllowablePoints(
-            path,
-            maxPipeLength,
-            gridSize
-          );
-          return {
-            path: allowablePoints,
-            totalPipeLength: calculateSegmentLength(
-              allowablePoints,
-              gridSize
-            ),
-          };
-        }
-      }
-    }
-
-    // Increment the layer by loopSpacing
-    layer += loopSpacing;
-
-    // Terminate if all layers have been processed
-    if (layer > Math.floor(Math.min(cols, rows) / 2)) {
-      console.log('All spiral layers processed');
-      spiralComplete = true;
+    if (spiralComplete) {
       break;
     }
-  }
-
-  if (!spiralComplete) {
-    console.warn('Spiral did not complete all layers');
   }
 
   // Attempt to smoothly connect the end back to the start without overlapping
