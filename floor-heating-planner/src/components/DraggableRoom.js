@@ -51,7 +51,7 @@ const DraggableRoom = ({
   // Generate the heating loop path
   const { path, totalPipeLength } = generateHeatingLoopPath(gridWithObstacles, {
     gridSize: gridResolution,
-    loopSpacing: loopSpacing,
+    loopSpacing: loopSpacing, // Pass loopSpacing to the path generator
     startPoint: startingPoint,
   });
 
