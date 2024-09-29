@@ -75,87 +75,8 @@ const HouseCanvas = () => {
     <div className="house-canvas-page">
       <h2>House Canvas</h2>
 
-      {/* Configuration Sidebar */}
-      <div className="configuration-sidebar">
-        <h3>Configuration Settings</h3>
-        {rooms.map((room, index) => (
-          <div key={index} className="config-item">
-            <h4>{room.name}</h4>
-            {/* Loop Spacing Control */}
-            <label htmlFor={`loopSpacing-${room.name}`}>
-              Loop Spacing (grid units):
-            </label>
-            <input
-              type="number"
-              id={`loopSpacing-${room.name}`}
-              min="1"
-              max="10"
-              value={configurations[room.name].loopSpacing}
-              onChange={(e) =>
-                handleLoopSpacingChange(
-                  room.name,
-                  parseInt(e.target.value, 10) || 1
-                )
-              }
-            />
-
-            {/* Starting Point Controls */}
-            <div className="starting-point-controls">
-              <label>Starting Point:</label>
-              <div>
-                <label htmlFor={`startingPointX-${room.name}`}>X:</label>
-                <input
-                  type="number"
-                  id={`startingPointX-${room.name}`}
-                  min="0"
-                  value={configurations[room.name].startingPoint.x}
-                  onChange={(e) =>
-                    handleStartingPointChange(room.name, {
-                      ...configurations[room.name].startingPoint,
-                      x: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label htmlFor={`startingPointY-${room.name}`}>Y:</label>
-                <input
-                  type="number"
-                  id={`startingPointY-${room.name}`}
-                  min="0"
-                  value={configurations[room.name].startingPoint.y}
-                  onChange={(e) =>
-                    handleStartingPointChange(room.name, {
-                      ...configurations[room.name].startingPoint,
-                      y: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Reset Configurations */}
-        <button
-          onClick={() => {
-            const resetConfig = {};
-            rooms.forEach((room) => {
-              resetConfig[room.name] = {
-                loopSpacing: 1,
-                startingPoint: { x: 0, y: 0 },
-              };
-            });
-            setConfigurations(resetConfig);
-          }}
-          className="reset-button"
-        >
-          Reset to Default
-        </button>
-      </div>
-
       <div className="house-canvas-container">
-        {/* Sidebar for room information */}
+        {/* Room Info Sidebar on the left */}
         <div className="room-info-sidebar">
           <h3>Room Information</h3>
           {rooms.map((room, index) => (
@@ -201,7 +122,87 @@ const HouseCanvas = () => {
             />
           ))}
         </div>
+
+        {/* Configuration Sidebar on the right */}
+        <div className="configuration-sidebar">
+          <h3>Configuration Settings</h3>
+          {rooms.map((room, index) => (
+            <div key={index} className="config-item">
+              <h4>{room.name}</h4>
+              {/* Loop Spacing Control */}
+              <label htmlFor={`loopSpacing-${room.name}`}>
+                Loop Spacing (grid units):
+              </label>
+              <input
+                type="number"
+                id={`loopSpacing-${room.name}`}
+                min="1"
+                max="10"
+                value={configurations[room.name].loopSpacing}
+                onChange={(e) =>
+                  handleLoopSpacingChange(
+                    room.name,
+                    parseInt(e.target.value, 10) || 1
+                  )
+                }
+              />
+
+              {/* Starting Point Controls */}
+              <div className="starting-point-controls">
+                <label>Starting Point:</label>
+                <div>
+                  <label htmlFor={`startingPointX-${room.name}`}>X:</label>
+                  <input
+                    type="number"
+                    id={`startingPointX-${room.name}`}
+                    min="0"
+                    value={configurations[room.name].startingPoint.x}
+                    onChange={(e) =>
+                      handleStartingPointChange(room.name, {
+                        ...configurations[room.name].startingPoint,
+                        x: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`startingPointY-${room.name}`}>Y:</label>
+                  <input
+                    type="number"
+                    id={`startingPointY-${room.name}`}
+                    min="0"
+                    value={configurations[room.name].startingPoint.y}
+                    onChange={(e) =>
+                      handleStartingPointChange(room.name, {
+                        ...configurations[room.name].startingPoint,
+                        y: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Reset Configurations */}
+          <button
+            onClick={() => {
+              const resetConfig = {};
+              rooms.forEach((room) => {
+                resetConfig[room.name] = {
+                  loopSpacing: 1,
+                  startingPoint: { x: 0, y: 0 },
+                };
+              });
+              setConfigurations(resetConfig);
+            }}
+            className="reset-button"
+          >
+            Reset to Default
+          </button>
+        </div>
       </div>
+
       <button
         onClick={() => navigate('/final-step')}
         className="next-button"

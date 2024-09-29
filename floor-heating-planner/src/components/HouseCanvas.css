@@ -5,26 +5,26 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-}
-
-.instructions {
-  margin: 20px;
-  font-size: 1em;
-  color: #333;
+  padding: 20px;
 }
 
 .house-canvas-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
+  align-items: flex-start;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .room-info-sidebar {
-  width: 250px; /* Adjust width as needed */
+  width: 250px; /* Fixed width for room info */
   padding: 10px;
   border-right: 1px solid #ccc;
   text-align: left;
   overflow-y: auto; /* Enable scrolling if content overflows */
+  background-color: #f8f9fa;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .room-info {
@@ -46,36 +46,79 @@
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   overflow: hidden;
-  /* Optional: Add a grid background */
+  /* Grid Background */
   background-image: linear-gradient(to right, #eee 1px, transparent 1px),
     linear-gradient(to bottom, #eee 1px, transparent 1px);
-  background-size: 50px 50px; /* Adjust grid size */
+  background-size: 50px 50px; /* Adjust grid size as needed */
+  flex-grow: 1; /* Allows the canvas to expand and fill available space */
+  margin: 0 20px; /* Space between sidebars and canvas */
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Configuration Sidebar Styles */
 .configuration-sidebar {
-  width: 250px; /* Same width as room-info-sidebar for consistency */
+  width: 250px; /* Fixed width for configuration settings */
   padding: 10px;
   border-left: 1px solid #ccc;
   text-align: left;
-  margin-left: 20px; /* Space between sidebars */
   background-color: #f0f0f0;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Enable scrolling if content overflows */
+}
+
+.configuration-sidebar h3 {
+  margin-top: 0;
+  color: #333;
 }
 
 .config-item {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.config-item h4 {
+  margin-bottom: 10px;
+  font-size: 1em;
+  color: #0f5132;
 }
 
 .config-item label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+  color: #134e4a;
 }
 
 .config-item input {
   width: 100%;
   padding: 5px;
+  margin-bottom: 10px;
   box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.starting-point-controls {
+  margin-top: 10px;
+}
+
+.starting-point-controls label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #134e4a;
+}
+
+.starting-point-controls div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.starting-point-controls label[for^="startingPoint"] {
+  flex: 0 0 20px;
+}
+
+.starting-point-controls input {
+  flex: 1;
 }
 
 .reset-button {
@@ -86,6 +129,7 @@
   border-radius: 4px;
   cursor: pointer;
   width: 100%;
+  font-size: 0.9em;
 }
 
 .reset-button:hover {
