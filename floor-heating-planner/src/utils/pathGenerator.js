@@ -1,7 +1,5 @@
 // src/utils/pathGenerator.js
 
-import { calculateSegmentLength, getAllowablePoints } from './pathCalculator';
-
 /**
  * Generates a heating loop path for underfloor heating using a spiral pattern with configurable loop spacing.
  *
@@ -233,4 +231,126 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   console.log('Path Generation Completed');
 
   return { path, totalPipeLength: finalPipeLength };
+};
+
+/**
+ * Finds a path back to the starting point using BFS without overlapping existing path.
+ * Ensures the return path follows the spiral-like progression.
+ * @param {number} x - Current x-coordinate.
+ * @param {number} y - Current y-coordinate.
+ * @param {Object} startPoint - The starting point { x: number, y: number }.
+ * @param {Array<Array<number>>} grid - The grid.
+ * @param {Array<Array<number>>} visited - The grid with visited cells marked.
+ * @param {Array<Object>} path - The current path to avoid overlapping.
+ * @returns {Array<Object>|null} - The path to the starting point or null if none found.
+ */
+const findPathToStart = (x, y, startPoint, grid, visited, path) => {
+  console.log('Starting findPathToStart');
+  const queue = [];
+  const cameFrom = {};
+  const key = (x, y) => `${x},${y}`;
+
+  queue.push({ x, y });
+  cameFrom[key(x, y)] = null;
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+
+    if (current.x === startPoint.x && current.y === startPoint.y) {
+      // Reconstruct path
+      const pathToStart = [];
+      let currKey = key(current.x, current.y);
+      while (currKey) {
+        const [cx, cy] = currKey.split(',').map(Number);
+        pathToStart.unshift({ x: cx, y: cy });
+        currKey = cameFrom[currKey];
+      }
+      console.log('Path to start found:', pathToStart);
+      return pathToStart.slice(1); // Exclude current position
+    }
+
+    const directions = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 },
+    ];
+
+    for (const { dx, dy } of directions) {
+      const nx = current.x + dx;
+      const ny = current.y + dy;
+      const nKey = key(nx, ny);
+
+      if (
+        nx >= 0 &&
+        nx < grid[0].length &&
+        ny >= 0 &&
+        ny < grid.length &&
+        grid[ny][nx] !== -1 &&
+        !(nKey in cameFrom) &&
+        !path.some(point => point.x === nx && point.y === ny) // Avoid overlapping
+      ) {
+        queue.push({ x: nx, y: ny });
+        cameFrom[nKey] = key(current.x, current.y);
+      }
+    }
+  }
+
+  console.warn('No path found to the starting point.');
+  return null;
+};
+
+/**
+ * Calculates the length of a path segment.
+ *
+ * @param {Array<{ x: number, y: number }>} segment - Array of points representing the path segment.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {number} - Length of the path segment in meters.
+ */
+const calculateSegmentLength = (segment, gridSize) => {
+  if (segment.length < 2) {
+    return 0;
+  }
+
+  let length = 0;
+  for (let i = 1; i < segment.length; i++) {
+    const dx = segment[i].x - segment[i - 1].x;
+    const dy = segment[i].y - segment[i - 1].y;
+    length += Math.sqrt(dx * dx + dy * dy) * gridSize;
+  }
+  return length;
+};
+
+/**
+ * Determines the allowable number of points to stay within the remaining length.
+ *
+ * @param {Array<{ x: number, y: number }>} segment - The current segment of points.
+ * @param {number} remainingLength - Remaining allowable length in meters.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {Array<{ x: number, y: number }>} - Truncated array of points within the remaining length.
+ */
+const getAllowablePoints = (segment, remainingLength, gridSize) => {
+  if (segment.length < 2) {
+    return segment;
+  }
+
+  let length = 0;
+  const allowablePoints = [segment[0]]; // Start with the first point
+
+  for (let i = 1; i < segment.length; i++) {
+    const dx = segment[i].x - segment[i - 1].x;
+    const dy = segment[i].y - segment[i - 1].y;
+    const segmentLength = Math.sqrt(dx * dx + dy * dy) * gridSize;
+
+    if (length + segmentLength > remainingLength) {
+      break;
+    }
+
+    length += segmentLength;
+    allowablePoints.push(segment[i]);
+  }
+
+  return allowablePoints;
 };

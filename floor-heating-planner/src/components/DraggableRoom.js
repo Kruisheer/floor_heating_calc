@@ -1,6 +1,6 @@
 // src/components/DraggableRoom.js
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Draggable from 'react-draggable';
 import RoomCanvas from './RoomCanvas';
 import {
@@ -24,40 +24,41 @@ const DraggableRoom = ({
   onStartingPointChange, // Callback to update starting point
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
-  const [length, width] = dimensions.split('x').map(Number);
+  const [length, width] = useMemo(() => dimensions.split('x').map(Number), [dimensions]);
 
   // Define a scale factor to convert meters to pixels (adjust as needed)
   const scaleFactor = 50; // 1 meter = 50 pixels
 
   // Calculate the room size in pixels
-  const roomWidth = width * scaleFactor;
-  const roomHeight = length * scaleFactor;
+  const roomWidth = useMemo(() => width * scaleFactor, [width, scaleFactor]);
+  const roomHeight = useMemo(() => length * scaleFactor, [length, scaleFactor]);
 
   // Create the grid for the room
   const gridResolution = 0.1; // 10 cm per grid cell
-  const grid = createRoomGrid(dimensions, gridResolution);
+
+  const grid = useMemo(() => createRoomGrid(dimensions, gridResolution), [dimensions, gridResolution]);
 
   // Add obstacles to the grid (if any)
-  let gridWithObstacles = addObstaclesToGrid(grid, obstacles);
+  const gridWithObstacles = useMemo(() => addObstaclesToGrid(grid, obstacles), [grid, obstacles]);
 
   // Add passageways to the grid (if any)
-  gridWithObstacles = addPassagewaysToGrid(
+  const finalGrid = useMemo(() => addPassagewaysToGrid(
     gridWithObstacles,
     passageways,
     dimensions,
     gridResolution
-  );
+  ), [gridWithObstacles, passageways, dimensions, gridResolution]);
 
   // Generate the heating loop path
-  const { path, totalPipeLength } = generateHeatingLoopPath(gridWithObstacles, {
+  const { path, totalPipeLength } = useMemo(() => generateHeatingLoopPath(finalGrid, {
     gridSize: gridResolution,
     loopSpacing: loopSpacing, // Pass loopSpacing to the path generator
     startPoint: startingPoint,
-  });
+  }), [finalGrid, gridResolution, loopSpacing, startingPoint]);
 
   // Adjust cell size for the RoomCanvas
-  const cellSizeX = roomWidth / grid[0].length;
-  const cellSizeY = roomHeight / grid.length;
+  const cellSizeX = useMemo(() => roomWidth / grid[0].length, [roomWidth, grid]);
+  const cellSizeY = useMemo(() => roomHeight / grid.length, [roomHeight, grid]);
 
   // Notify the parent component of the pipe length
   useEffect(() => {
@@ -89,7 +90,7 @@ const DraggableRoom = ({
       >
         {/* Room Canvas */}
         <RoomCanvas
-          grid={gridWithObstacles}
+          grid={finalGrid}
           path={path}
           roomWidth={roomWidth}
           roomHeight={roomHeight}

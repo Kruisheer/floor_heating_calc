@@ -1,6 +1,6 @@
 // src/components/HouseCanvas.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DraggableRoom from './DraggableRoom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './HouseCanvas.css';
@@ -23,6 +23,8 @@ const HouseCanvas = () => {
       initialConfig[room.name] = {
         loopSpacing: 1, // Default loop spacing
         startingPoint: { x: 0, y: 0 }, // Default starting point
+        // If you have an ending point, initialize it here
+        // endingPoint: { x: 0, y: 0 },
       };
     });
     return initialConfig;
@@ -38,6 +40,7 @@ const HouseCanvas = () => {
 
   // Function to handle starting point selection per room
   const handleStartingPointChange = (roomName, newStartingPoint) => {
+    console.log(`Updating starting point for ${roomName}:`, newStartingPoint);
     setConfigurations((prev) => ({
       ...prev,
       [roomName]: {
@@ -133,6 +136,43 @@ const HouseCanvas = () => {
                 />
               </div>
             </div>
+
+            {/* If you have an ending point, add similar controls here */}
+            {/* 
+            <div className="ending-point-controls">
+              <label>Ending Point:</label>
+              <div>
+                <label htmlFor={`endingPointX-${room.name}`}>X:</label>
+                <input
+                  type="number"
+                  id={`endingPointX-${room.name}`}
+                  min="0"
+                  value={configurations[room.name].endingPoint.x}
+                  onChange={(e) =>
+                    handleEndingPointChange(room.name, {
+                      ...configurations[room.name].endingPoint,
+                      x: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label htmlFor={`endingPointY-${room.name}`}>Y:</label>
+                <input
+                  type="number"
+                  id={`endingPointY-${room.name}`}
+                  min="0"
+                  value={configurations[room.name].endingPoint.y}
+                  onChange={(e) =>
+                    handleEndingPointChange(room.name, {
+                      ...configurations[room.name].endingPoint,
+                      y: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            */}
           </div>
         ))}
 
@@ -144,6 +184,7 @@ const HouseCanvas = () => {
               resetConfig[room.name] = {
                 loopSpacing: 1,
                 startingPoint: { x: 0, y: 0 },
+                // endingPoint: { x: 0, y: 0 },
               };
             });
             setConfigurations(resetConfig);
@@ -171,7 +212,7 @@ const HouseCanvas = () => {
         ))}
       </div>
 
-      {/* House Canvas where rooms are placed */}
+      {/* House Canvas */}
       <div className="house-canvas-container">
         <div
           className="house-canvas"
@@ -190,6 +231,7 @@ const HouseCanvas = () => {
               position={roomPositions[room.name] || { x: 0, y: 0 }}
               loopSpacing={configurations[room.name].loopSpacing} // Pass loopSpacing
               startingPoint={configurations[room.name].startingPoint}
+              // endingPoint={configurations[room.name].endingPoint} // If applicable
               onDragStop={(e, data) => {
                 setRoomPositions((prev) => ({
                   ...prev,
@@ -198,6 +240,7 @@ const HouseCanvas = () => {
               }}
               onPipeLengthCalculated={handlePipeLengthCalculated}
               onStartingPointChange={handleStartingPointChange}
+              // onEndingPointChange={handleEndingPointChange} // If applicable
             />
           ))}
         </div>
