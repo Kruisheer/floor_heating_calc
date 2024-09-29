@@ -43,7 +43,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     row.map((cell) => (cell === -1 ? -1 : 0))
   );
 
-  let layer = 0;
+  //let layer = 0;
   let spiralComplete = false;
 
   // Initialize queue for BFS-based spiral
