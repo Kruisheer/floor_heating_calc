@@ -61,7 +61,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   let bottom = y;
 
   let totalPipeLength = 0;
-  const maxSteps = cols * rows; // Maximum steps to prevent infinite loops
+  //const maxSteps = cols * rows; // Maximum steps to prevent infinite loops
 
   while (left > 0 || right < cols - 1 || top > 0 || bottom < rows - 1) {
     // Expand boundaries
