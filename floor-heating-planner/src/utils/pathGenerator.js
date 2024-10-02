@@ -54,15 +54,22 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     throw new Error('Starting point is an obstacle.');
   }
 
-  let left = 0;
-  let right = cols - 1;
-  let top = 0;
-  let bottom = rows - 1;
+  // Initialize boundaries based on starting point
+  let left = x;
+  let right = x;
+  let top = y;
+  let bottom = y;
 
   let totalPipeLength = 0;
   const maxSteps = cols * rows; // Maximum steps to prevent infinite loops
 
-  while (left <= right && top <= bottom && path.length < maxSteps) {
+  while (left > 0 || right < cols - 1 || top > 0 || bottom < rows - 1) {
+    // Expand boundaries
+    left = Math.max(0, left - loopSpacing);
+    right = Math.min(cols - 1, right + loopSpacing);
+    top = Math.max(0, top - loopSpacing);
+    bottom = Math.min(rows - 1, bottom + loopSpacing);
+
     // Move right along the top boundary
     for (let i = left + (path.length > 1 ? loopSpacing : 0); i <= right; i += loopSpacing) {
       if (grid[top][i] !== -1 && visited[top][i] === 0) {
@@ -77,10 +84,9 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
         console.log('Added point:', { x: i, y: top });
       }
     }
-    top += loopSpacing;
 
     // Move down along the right boundary
-    for (let i = top; i <= bottom; i += loopSpacing) {
+    for (let i = top + loopSpacing; i <= bottom; i += loopSpacing) {
       if (grid[i][right] !== -1 && visited[i][right] === 0) {
         const segmentLength = calculateDistance(path[path.length - 1], { x: right, y: i }, gridSize);
         if (totalPipeLength + segmentLength > maxPipeLength) {
@@ -93,10 +99,9 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
         console.log('Added point:', { x: right, y: i });
       }
     }
-    right -= loopSpacing;
 
     // Move left along the bottom boundary
-    for (let i = right; i >= left; i -= loopSpacing) {
+    for (let i = right - loopSpacing; i >= left; i -= loopSpacing) {
       if (grid[bottom][i] !== -1 && visited[bottom][i] === 0) {
         const segmentLength = calculateDistance(path[path.length - 1], { x: i, y: bottom }, gridSize);
         if (totalPipeLength + segmentLength > maxPipeLength) {
@@ -109,10 +114,9 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
         console.log('Added point:', { x: i, y: bottom });
       }
     }
-    bottom -= loopSpacing;
 
     // Move up along the left boundary
-    for (let i = bottom; i >= top; i -= loopSpacing) {
+    for (let i = bottom - loopSpacing; i >= top + loopSpacing; i -= loopSpacing) {
       if (grid[i][left] !== -1 && visited[i][left] === 0) {
         const segmentLength = calculateDistance(path[path.length - 1], { x: left, y: i }, gridSize);
         if (totalPipeLength + segmentLength > maxPipeLength) {
@@ -125,10 +129,9 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
         console.log('Added point:', { x: left, y: i });
       }
     }
-    left += loopSpacing;
 
-    // Check if we've reached the center or if there are no more valid cells
-    if (left > right || top > bottom) {
+    // Check if we've covered the entire grid
+    if (left === 0 && right === cols - 1 && top === 0 && bottom === rows - 1) {
       break;
     }
   }
