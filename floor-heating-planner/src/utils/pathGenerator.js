@@ -59,12 +59,21 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   let top = 0;
   let bottom = rows - 1;
 
-  while (left <= right && top <= bottom) {
+  let totalPipeLength = 0;
+  const maxSteps = cols * rows; // Maximum steps to prevent infinite loops
+
+  while (left <= right && top <= bottom && path.length < maxSteps) {
     // Move right along the top boundary
-    for (let i = left; i <= right; i += loopSpacing) {
+    for (let i = left + (path.length > 1 ? loopSpacing : 0); i <= right; i += loopSpacing) {
       if (grid[top][i] !== -1 && visited[top][i] === 0) {
+        const segmentLength = calculateDistance(path[path.length - 1], { x: i, y: top }, gridSize);
+        if (totalPipeLength + segmentLength > maxPipeLength) {
+          console.log('Max pipe length exceeded during spiral at top boundary');
+          return { path, totalPipeLength };
+        }
         path.push({ x: i, y: top });
         visited[top][i] = 1;
+        totalPipeLength += segmentLength;
         console.log('Added point:', { x: i, y: top });
       }
     }
@@ -73,8 +82,14 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     // Move down along the right boundary
     for (let i = top; i <= bottom; i += loopSpacing) {
       if (grid[i][right] !== -1 && visited[i][right] === 0) {
+        const segmentLength = calculateDistance(path[path.length - 1], { x: right, y: i }, gridSize);
+        if (totalPipeLength + segmentLength > maxPipeLength) {
+          console.log('Max pipe length exceeded during spiral at right boundary');
+          return { path, totalPipeLength };
+        }
         path.push({ x: right, y: i });
         visited[i][right] = 1;
+        totalPipeLength += segmentLength;
         console.log('Added point:', { x: right, y: i });
       }
     }
@@ -83,8 +98,14 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     // Move left along the bottom boundary
     for (let i = right; i >= left; i -= loopSpacing) {
       if (grid[bottom][i] !== -1 && visited[bottom][i] === 0) {
+        const segmentLength = calculateDistance(path[path.length - 1], { x: i, y: bottom }, gridSize);
+        if (totalPipeLength + segmentLength > maxPipeLength) {
+          console.log('Max pipe length exceeded during spiral at bottom boundary');
+          return { path, totalPipeLength };
+        }
         path.push({ x: i, y: bottom });
         visited[bottom][i] = 1;
+        totalPipeLength += segmentLength;
         console.log('Added point:', { x: i, y: bottom });
       }
     }
@@ -93,8 +114,14 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     // Move up along the left boundary
     for (let i = bottom; i >= top; i -= loopSpacing) {
       if (grid[i][left] !== -1 && visited[i][left] === 0) {
+        const segmentLength = calculateDistance(path[path.length - 1], { x: left, y: i }, gridSize);
+        if (totalPipeLength + segmentLength > maxPipeLength) {
+          console.log('Max pipe length exceeded during spiral at left boundary');
+          return { path, totalPipeLength };
+        }
         path.push({ x: left, y: i });
         visited[i][left] = 1;
+        totalPipeLength += segmentLength;
         console.log('Added point:', { x: left, y: i });
       }
     }
@@ -120,17 +147,37 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     path
   );
   if (returnPath) {
-    console.log('Return path found:', returnPath);
-    path.push(...returnPath);
+    // Calculate the length of the return path
+    const returnPathLength = calculateSegmentLength(returnPath, gridSize);
+    if (totalPipeLength + returnPathLength <= maxPipeLength) {
+      path.push(...returnPath);
+      totalPipeLength += returnPathLength;
+    } else {
+      console.log('Max pipe length exceeded during return path');
+    }
   } else {
     console.warn('No return path found to the starting point.');
   }
 
-  const finalPipeLength = calculateSegmentLength(path, gridSize);
-  console.log('Final Pipe Length:', finalPipeLength);
+  console.log('Final Pipe Length:', totalPipeLength);
   console.log('Path Generation Completed');
 
-  return { path, totalPipeLength: finalPipeLength };
+  return { path, totalPipeLength };
+};
+
+/**
+ * Calculates the distance between two points.
+ *
+ * @param {Object} pointA - First point { x: number, y: number }.
+ * @param {Object} pointB - Second point { x: number, y: number }.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {number} - Distance in meters.
+ */
+const calculateDistance = (pointA, pointB, gridSize) => {
+  const dx = pointB.x - pointA.x;
+  const dy = pointB.y - pointA.y;
+  return Math.sqrt(dx * dx + dy * dy) * gridSize;
 };
 
 /**
@@ -220,37 +267,4 @@ const calculateSegmentLength = (segment, gridSize) => {
     length += Math.sqrt(dx * dx + dy * dy) * gridSize;
   }
   return length;
-};
-
-/**
- * Determines the allowable number of points to stay within the remaining length.
- *
- * @param {Array<{ x: number, y: number }>} segment - The current segment of points.
- * @param {number} remainingLength - Remaining allowable length in meters.
- * @param {number} gridSize - Physical size of each grid cell in meters.
- *
- * @returns {Array<{ x: number, y: number }>} - Truncated array of points within the remaining length.
- */
-const getAllowablePoints = (segment, remainingLength, gridSize) => {
-  if (segment.length < 2) {
-    return segment;
-  }
-
-  let length = 0;
-  const allowablePoints = [segment[0]]; // Start with the first point
-
-  for (let i = 1; i < segment.length; i++) {
-    const dx = segment[i].x - segment[i - 1].x;
-    const dy = segment[i].y - segment[i - 1].y;
-    const segmentLength = Math.sqrt(dx * dx + dy * dy) * gridSize;
-
-    if (length + segmentLength > remainingLength) {
-      break;
-    }
-
-    length += segmentLength;
-    allowablePoints.push(segment[i]);
-  }
-
-  return allowablePoints;
 };
