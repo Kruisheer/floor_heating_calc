@@ -43,78 +43,65 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     row.map((cell) => (cell === -1 ? -1 : 0))
   );
 
-  //let layer = 0;
-  let spiralComplete = false;
+  let x = startPoint.x;
+  let y = startPoint.y;
 
-  // Initialize queue for BFS-based spiral
-  const queue = [];
-  queue.push({ x: startPoint.x, y: startPoint.y, layer: 0 });
-  visited[startPoint.y][startPoint.x] = 1;
-  path.push({ x: startPoint.x, y: startPoint.y });
-  console.log('Added starting point to path');
+  if (visited[y][x] !== -1) {
+    path.push({ x, y });
+    visited[y][x] = 1;
+    console.log('Added starting point to path');
+  } else {
+    throw new Error('Starting point is an obstacle.');
+  }
 
-  while (queue.length > 0) {
-    const current = queue.shift();
-    const { x, y, layer: currentLayer } = current;
+  let left = 0;
+  let right = cols - 1;
+  let top = 0;
+  let bottom = rows - 1;
 
-    // Define the directions: right, down, left, up
-    const directions = [
-      { dx: 1, dy: 0 }, // Right
-      { dx: 0, dy: 1 }, // Down
-      { dx: -1, dy: 0 }, // Left
-      { dx: 0, dy: -1 }, // Up
-    ];
-
-    for (const { dx, dy } of directions) {
-      for (let step = 1; step <= loopSpacing; step++) {
-        const nx = x + dx * step;
-        const ny = y + dy * step;
-
-        // Check boundaries
-        if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
-          spiralComplete = true;
-          break;
-        }
-
-        // Check for obstacles and visited cells
-        if (grid[ny][nx] === -1 || visited[ny][nx] === 1) {
-          spiralComplete = true;
-          break;
-        }
-
-        // Add to path
-        path.push({ x: nx, y: ny });
-        visited[ny][nx] = 1;
-        console.log('Added point:', { x: nx, y: ny });
-
-        // Check pipe length
-        const totalPipeLength = calculateSegmentLength(path, gridSize);
-        if (totalPipeLength > maxPipeLength) {
-          console.log('Max pipe length exceeded during spiral');
-          const allowablePoints = getAllowablePoints(
-            path,
-            maxPipeLength,
-            gridSize
-          );
-          return {
-            path: allowablePoints,
-            totalPipeLength: calculateSegmentLength(
-              allowablePoints,
-              gridSize
-            ),
-          };
-        }
-
-        // Enqueue the new point for further expansion
-        queue.push({ x: nx, y: ny, layer: currentLayer + 1 });
-      }
-
-      if (spiralComplete) {
-        break;
+  while (left <= right && top <= bottom) {
+    // Move right along the top boundary
+    for (let i = left; i <= right; i += loopSpacing) {
+      if (grid[top][i] !== -1 && visited[top][i] === 0) {
+        path.push({ x: i, y: top });
+        visited[top][i] = 1;
+        console.log('Added point:', { x: i, y: top });
       }
     }
+    top += loopSpacing;
 
-    if (spiralComplete) {
+    // Move down along the right boundary
+    for (let i = top; i <= bottom; i += loopSpacing) {
+      if (grid[i][right] !== -1 && visited[i][right] === 0) {
+        path.push({ x: right, y: i });
+        visited[i][right] = 1;
+        console.log('Added point:', { x: right, y: i });
+      }
+    }
+    right -= loopSpacing;
+
+    // Move left along the bottom boundary
+    for (let i = right; i >= left; i -= loopSpacing) {
+      if (grid[bottom][i] !== -1 && visited[bottom][i] === 0) {
+        path.push({ x: i, y: bottom });
+        visited[bottom][i] = 1;
+        console.log('Added point:', { x: i, y: bottom });
+      }
+    }
+    bottom -= loopSpacing;
+
+    // Move up along the left boundary
+    for (let i = bottom; i >= top; i -= loopSpacing) {
+      if (grid[i][left] !== -1 && visited[i][left] === 0) {
+        path.push({ x: left, y: i });
+        visited[i][left] = 1;
+        console.log('Added point:', { x: left, y: i });
+      }
+    }
+    left += loopSpacing;
+
+    // Check if we've reached the center or if there are no more valid cells
+    if (left > right || top > bottom) {
       break;
     }
   }
@@ -201,7 +188,7 @@ const findPathToStart = (x, y, startPoint, grid, visited, path) => {
         ny < grid.length &&
         grid[ny][nx] !== -1 &&
         !(nKey in cameFrom) &&
-        !path.some(point => point.x === nx && point.y === ny) // Avoid overlapping
+        !path.some((point) => point.x === nx && point.y === ny) // Avoid overlapping
       ) {
         queue.push({ x: nx, y: ny });
         cameFrom[nKey] = key(current.x, current.y);
