@@ -7,6 +7,7 @@ import {
   createRoomGrid,
   addObstaclesToGrid,
   addPassagewaysToGrid,
+  addNoPipeZonesToGrid, // Ensure this is imported if you implemented no-pipe zones
 } from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
 import './DraggableRoom.css';
@@ -16,12 +17,16 @@ const DraggableRoom = ({
   dimensions,
   obstacles = [],
   passageways = [],
+  noPipeZones = [], // Add noPipeZones prop if implemented
   position = { x: 0, y: 0 },
   loopSpacing = 1, // Default loop spacing
-  startingPoint = { x: 0, y: 0 }, // Default starting point
+  startPoint = { x: 0, y: 0 }, // Default starting point
+  endPoint = { x: 0, y: 0 }, // Default ending point
   onDragStop,
   onPipeLengthCalculated,
-  onStartingPointChange, // Callback to update starting point
+  onStartPointChange, // Callback to update start point
+  onEndPointChange,   // Callback to update end point
+  maxPipeLength = 90, // Default max pipe length in meters
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
   const [length, width] = useMemo(() => {
@@ -44,19 +49,27 @@ const DraggableRoom = ({
   const gridWithObstacles = useMemo(() => addObstaclesToGrid(grid, obstacles), [grid, obstacles]);
 
   // Add passageways to the grid (if any)
-  const finalGrid = useMemo(() => addPassagewaysToGrid(
+  const gridWithPassageways = useMemo(() => addPassagewaysToGrid(
     gridWithObstacles,
     passageways,
     dimensions,
     gridResolution
   ), [gridWithObstacles, passageways, dimensions, gridResolution]);
 
+  // Add no-pipe zones to the grid (if any)
+  const finalGrid = useMemo(() => addNoPipeZonesToGrid(
+    gridWithPassageways,
+    noPipeZones
+  ), [gridWithPassageways, noPipeZones]);
+
   // Generate the heating loop path
   const { path, totalPipeLength } = useMemo(() => generateHeatingLoopPath(finalGrid, {
     gridSize: gridResolution,
     loopSpacing: loopSpacing, // Pass loopSpacing to the path generator
-    startPoint: startingPoint,
-  }), [finalGrid, gridResolution, loopSpacing, startingPoint]);
+    startPoint: startPoint,
+    endPoint: endPoint,         // Pass endPoint to the path generator
+    maxPipeLength: maxPipeLength, // Pass maxPipeLength
+  }), [finalGrid, gridResolution, loopSpacing, startPoint, endPoint, maxPipeLength]);
 
   // Adjust cell size for the RoomCanvas
   const cellSizeX = useMemo(() => roomWidth / grid[0].length, [roomWidth, grid]);
@@ -70,9 +83,16 @@ const DraggableRoom = ({
   }, [onPipeLengthCalculated, name, totalPipeLength]);
 
   // Handle starting point updates from RoomCanvas
-  const handleStartingPointSet = (newPoint) => {
-    if (onStartingPointChange) {
-      onStartingPointChange(name, newPoint);
+  const handleStartPointSet = (newPoint) => {
+    if (onStartPointChange) {
+      onStartPointChange(name, newPoint);
+    }
+  };
+
+  // Handle ending point updates from RoomCanvas
+  const handleEndPointSet = (newPoint) => {
+    if (onEndPointChange) {
+      onEndPointChange(name, newPoint);
     }
   };
 
@@ -100,8 +120,10 @@ const DraggableRoom = ({
           cellSizeY={cellSizeY}
           passageways={passageways}
           loopSpacing={loopSpacing}
-          startingPoint={startingPoint}
-          onSetStartingPoint={handleStartingPointSet}
+          startPoint={startPoint}
+          endPoint={endPoint}
+          onSetStartPoint={handleStartPointSet}
+          onSetEndPoint={handleEndPointSet}
         />
       </div>
     </Draggable>
