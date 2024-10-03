@@ -7,7 +7,7 @@ import {
   createRoomGrid,
   addObstaclesToGrid,
   addPassagewaysToGrid,
-  addNoPipeZonesToGrid, // Ensure this is imported if you implemented no-pipe zones
+  addNoPipeZonesToGrid, // Ensure this is imported
 } from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
 import './DraggableRoom.css';
