@@ -12,8 +12,10 @@ const RoomCanvas = ({
   cellSizeY,
   passageways = [],
   loopSpacing,
-  startingPoint,
-  onSetStartingPoint, // Callback for interactive starting point setting
+  startPoint,
+  endPoint,
+  onSetStartPoint, // Callback for interactive starting point setting
+  onSetEndPoint,   // Callback for interactive ending point setting
 }) => {
   // Generate points for the Line component
   const linePoints = path.flatMap((point) => [
@@ -22,13 +24,19 @@ const RoomCanvas = ({
   ]);
 
   // Visualize Starting Point
-  const startingPointPx = [
-    startingPoint.x * cellSizeX + cellSizeX / 2,
-    startingPoint.y * cellSizeY + cellSizeY / 2,
+  const startPointPx = [
+    startPoint.x * cellSizeX + cellSizeX / 2,
+    startPoint.y * cellSizeY + cellSizeY / 2,
+  ];
+
+  // Visualize Ending Point
+  const endPointPx = [
+    endPoint.x * cellSizeX + cellSizeX / 2,
+    endPoint.y * cellSizeY + cellSizeY / 2,
   ];
 
   // Handle click to set starting point
-  const handleStageClick = (e) => {
+  const handleStartPointClick = (e) => {
     const stage = e.target.getStage();
     const pointerPosition = stage.getPointerPosition();
     const x = Math.floor(pointerPosition.x / cellSizeX);
@@ -37,14 +45,30 @@ const RoomCanvas = ({
     // Ensure the clicked cell is within the grid and not an obstacle
     if (grid[y] && grid[y][x] !== -1) {
       console.log(`Setting new starting point: x=${x}, y=${y}`);
-      onSetStartingPoint({ x, y });
+      onSetStartPoint({ x, y });
+    } else {
+      console.warn('Clicked position is invalid or an obstacle.');
+    }
+  };
+
+  // Handle click to set ending point
+  const handleEndPointClick = (e) => {
+    const stage = e.target.getStage();
+    const pointerPosition = stage.getPointerPosition();
+    const x = Math.floor(pointerPosition.x / cellSizeX);
+    const y = Math.floor(pointerPosition.y / cellSizeY);
+
+    // Ensure the clicked cell is within the grid and not an obstacle
+    if (grid[y] && grid[y][x] !== -1) {
+      console.log(`Setting new ending point: x=${x}, y=${y}`);
+      onSetEndPoint({ x, y });
     } else {
       console.warn('Clicked position is invalid or an obstacle.');
     }
   };
 
   return (
-    <Stage width={roomWidth} height={roomHeight} onClick={handleStageClick}>
+    <Stage width={roomWidth} height={roomHeight}>
       <Layer>
         {/* Draw Room Boundaries */}
         <Line
@@ -144,12 +168,26 @@ const RoomCanvas = ({
 
         {/* Draw Starting Point Indicator */}
         <Circle
-          x={startingPointPx[0]}
-          y={startingPointPx[1]}
+          x={startPointPx[0]}
+          y={startPointPx[1]}
           radius={5}
           fill="blue"
           stroke="black"
           strokeWidth={1}
+          onClick={handleStartPointClick}
+          onTap={handleStartPointClick}
+        />
+
+        {/* Draw Ending Point Indicator */}
+        <Circle
+          x={endPointPx[0]}
+          y={endPointPx[1]}
+          radius={5}
+          fill="green"
+          stroke="black"
+          strokeWidth={1}
+          onClick={handleEndPointClick}
+          onTap={handleEndPointClick}
         />
       </Layer>
     </Stage>
