@@ -63,33 +63,25 @@ export const addPassagewaysToGrid = (grid, passageways, dimensions, gridResoluti
     let x1, y1, x2, y2;
 
     if (side === 'top' || side === 'bottom') {
-      const startX = Math.floor((position * gridResolution) / gridResolution);
-      const endX = Math.floor(((position + passageWidth) * gridResolution) / gridResolution);
-      if (side === 'top') {
-        y1 = 0;
-        y2 = 0;
-      } else {
-        y1 = rows - 1;
-        y2 = rows - 1;
-      }
+      // Calculate starting and ending x-coordinates based on position and passageWidth
+      const startX = Math.floor(position / gridResolution);
+      const endX = Math.floor((position + passageWidth) / gridResolution);
+      const y = side === 'top' ? 0 : rows - 1;
+
       for (let j = startX; j <= endX; j++) {
         if (j >= 0 && j < cols) {
-          newGrid[y1][j] = 0; // Clear passageway
+          newGrid[y][j] = 0; // Clear passageway
         }
       }
     } else if (side === 'left' || side === 'right') {
-      const startY = Math.floor((position * gridResolution) / gridResolution);
-      const endY = Math.floor(((position + passageWidth) * gridResolution) / gridResolution);
-      if (side === 'left') {
-        x1 = 0;
-        x2 = 0;
-      } else {
-        x1 = cols - 1;
-        x2 = cols - 1;
-      }
+      // Calculate starting and ending y-coordinates based on position and passageWidth
+      const startY = Math.floor(position / gridResolution);
+      const endY = Math.floor((position + passageWidth) / gridResolution);
+      const x = side === 'left' ? 0 : cols - 1;
+
       for (let i = startY; i <= endY; i++) {
         if (i >= 0 && i < rows) {
-          newGrid[i][x1] = 0; // Clear passageway
+          newGrid[i][x] = 0; // Clear passageway
         }
       }
     }
