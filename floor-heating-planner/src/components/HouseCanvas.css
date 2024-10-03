@@ -92,6 +92,24 @@
   background-color: #218838;
 }
 
+/* Starting and Ending Point Controls */
+.configuration-sidebar .end-point-controls {
+  margin-top: 10px;
+}
+
+.configuration-sidebar .end-point-controls label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.configuration-sidebar .end-point-controls input[type="number"] {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+
 .next-button:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
