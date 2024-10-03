@@ -22,11 +22,18 @@ export const calculatePipeRequirements = (rooms, options = {}) => {
       grid = addPassagewaysToGrid(grid, room.passageways, room.dimensions, gridSize);
     }
 
+    // Add no-pipe zones if any
+    if (room.noPipeZones) {
+      grid = addNoPipeZonesToGrid(grid, room.noPipeZones);
+    }
+
     // Generate heating loop path
     const { path, totalPipeLength: roomPipeLength } = generateHeatingLoopPath(grid, {
       gridSize,
-      maxPipeLength: room.maxPipeLength || Infinity,
+      loopSpacing: room.loopSpacing || 1,
       startPoint: room.startPoint,
+      endPoint: room.endPoint,
+      maxPipeLength: room.maxPipeLength || 90,
     });
 
     // Update total pipe length
