@@ -23,8 +23,7 @@ const HouseCanvas = () => {
       initialConfig[room.name] = {
         loopSpacing: 1, // Default loop spacing
         startingPoint: { x: 0, y: 0 }, // Default starting point
-        // If you have an ending point, initialize it here
-        // endingPoint: { x: 0, y: 0 },
+        endingPoint: { x: 0, y: 0 },   // Initialize ending point
       };
     });
     return initialConfig;
@@ -46,6 +45,18 @@ const HouseCanvas = () => {
       [roomName]: {
         ...prev[roomName],
         startingPoint: newStartingPoint,
+      },
+    }));
+  };
+
+  // Function to handle ending point selection per room
+  const handleEndingPointChange = (roomName, newEndingPoint) => {
+    console.log(`Updating ending point for ${roomName}:`, newEndingPoint);
+    setConfigurations((prev) => ({
+      ...prev,
+      [roomName]: {
+        ...prev[roomName],
+        endingPoint: newEndingPoint,
       },
     }));
   };
@@ -138,8 +149,7 @@ const HouseCanvas = () => {
               </div>
             </div>
 
-            {/* If you have an ending point, add similar controls here */}
-            {/* 
+            {/* Ending Point Controls */}
             <div className="ending-point-controls">
               <label>Ending Point:</label>
               <div>
@@ -173,7 +183,6 @@ const HouseCanvas = () => {
                 />
               </div>
             </div>
-            */}
           </div>
         ))}
 
@@ -185,7 +194,7 @@ const HouseCanvas = () => {
               resetConfig[room.name] = {
                 loopSpacing: 1,
                 startingPoint: { x: 0, y: 0 },
-                // endingPoint: { x: 0, y: 0 },
+                endingPoint: { x: 0, y: 0 },
               };
             });
             setConfigurations(resetConfig);
@@ -229,10 +238,11 @@ const HouseCanvas = () => {
               dimensions={room.dimensions}
               obstacles={room.obstacles}
               passageways={room.passageways}
+              noPipeZones={room.noPipeZones} // Pass noPipeZones if available
               position={roomPositions[room.name] || { x: 0, y: 0 }}
               loopSpacing={configurations[room.name].loopSpacing} // Pass loopSpacing
-              startingPoint={configurations[room.name].startingPoint}
-              // endingPoint={configurations[room.name].endingPoint} // If applicable
+              startPoint={configurations[room.name].startingPoint}
+              endPoint={configurations[room.name].endingPoint} // Pass endingPoint
               onDragStop={(e, data) => {
                 setRoomPositions((prev) => ({
                   ...prev,
@@ -240,8 +250,8 @@ const HouseCanvas = () => {
                 }));
               }}
               onPipeLengthCalculated={handlePipeLengthCalculated}
-              onStartingPointChange={handleStartingPointChange}
-              // onEndingPointChange={handleEndingPointChange} // If applicable
+              onStartPointChange={handleStartingPointChange}
+              onEndPointChange={handleEndingPointChange} // Pass endingPoint handler
             />
           ))}
         </div>
