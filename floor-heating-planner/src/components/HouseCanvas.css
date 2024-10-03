@@ -109,8 +109,17 @@
   box-sizing: border-box;
 }
 
-
 .next-button:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
+}
+
+/* Ensure End Point Controls are Styled Properly */
+.configuration-sidebar .ending-point-controls label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.configuration-sidebar .ending-point-controls div {
+  margin-bottom: 5px;
 }
