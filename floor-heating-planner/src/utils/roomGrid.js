@@ -53,14 +53,12 @@ export const addObstaclesToGrid = (grid, obstacles) => {
 export const addPassagewaysToGrid = (grid, passageways, dimensions, gridResolution) => {
   if (!passageways || passageways.length === 0) return grid;
 
-  const [length, width] = dimensions.split('x').map(Number);
   const rows = grid.length;
   const cols = grid[0].length;
   const newGrid = grid.map(row => [...row]);
 
   passageways.forEach(passageway => {
     const { side, position, width: passageWidth } = passageway;
-    let x1, y1, x2, y2;
 
     if (side === 'top' || side === 'bottom') {
       // Calculate starting and ending x-coordinates based on position and passageWidth
