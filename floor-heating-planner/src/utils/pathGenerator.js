@@ -56,9 +56,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   }
 
   // Create a copy of the grid to mark visited cells
-  const visited = grid.map((row) =>
-    row.map((cell) => (cell === -1 ? -1 : 0))
-  );
+  const visited = grid.map(row => row.map(cell => (cell === -1 ? -1 : 0)));
 
   // Initialize path with start point
   path.push({ x: startPoint.x, y: startPoint.y });
@@ -73,7 +71,6 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
   let totalPipeLength = 0;
   const maxIterations = cols * rows * 4; // Prevent infinite loops
-
   let iterations = 0;
 
   while (left > 0 || right < cols - 1 || top > 0 || bottom < rows - 1) {
