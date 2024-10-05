@@ -74,7 +74,7 @@ const HouseCanvas = () => {
     }));
   };
 
-  // Function to handle path generation method change per room
+  // Function to handle path method change per room
   const handlePathMethodChange = (roomName, newMethod) => {
     console.log(`Updating path method for ${roomName}: ${newMethod}`);
     setConfigurations((prev) => ({
@@ -126,19 +126,6 @@ const HouseCanvas = () => {
                 )
               }
             />
-
-            {/* Path Generation Method Control */}
-            <label htmlFor={`pathMethod-${room.name}`}>Path Generation Method:</label>
-            <select
-              id={`pathMethod-${room.name}`}
-              value={configurations[room.name].pathMethod}
-              onChange={(e) =>
-                handlePathMethodChange(room.name, e.target.value)
-              }
-            >
-              <option value="doubleSpiral">Double Spiral</option>
-              <option value="original">Original Method</option>
-            </select>
 
             {/* Starting Point Controls */}
             <div className="starting-point-controls">
@@ -209,6 +196,19 @@ const HouseCanvas = () => {
                 />
               </div>
             </div>
+
+            {/* Path Generation Method Control */}
+            <label htmlFor={`pathMethod-${room.name}`}>Path Generation Method:</label>
+            <select
+              id={`pathMethod-${room.name}`}
+              value={configurations[room.name].pathMethod}
+              onChange={(e) =>
+                handlePathMethodChange(room.name, e.target.value)
+              }
+            >
+              <option value="doubleSpiral">Double Spiral</option>
+              <option value="original">Original Method</option>
+            </select>
           </div>
         ))}
 
@@ -221,7 +221,7 @@ const HouseCanvas = () => {
                 loopSpacing: 1,
                 startingPoint: { x: 0, y: 0 },
                 endingPoint: { x: 0, y: 0 },
-                pathMethod: 'doubleSpiral', // Reset to default
+                pathMethod: 'doubleSpiral',
               };
             });
             setConfigurations(resetConfig);
