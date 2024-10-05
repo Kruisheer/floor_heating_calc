@@ -7,7 +7,7 @@ import {
   createRoomGrid,
   addObstaclesToGrid,
   addPassagewaysToGrid,
-  addNoPipeZonesToGrid, // Ensure this is imported
+  addNoPipeZonesToGrid,
 } from '../utils/roomGrid';
 import { generateHeatingLoopPath } from '../utils/pathGenerator';
 import './DraggableRoom.css';
@@ -17,16 +17,17 @@ const DraggableRoom = ({
   dimensions,
   obstacles = [],
   passageways = [],
-  noPipeZones = [], // Add noPipeZones prop if implemented
+  noPipeZones = [],
   position = { x: 0, y: 0 },
-  loopSpacing = 1, // Default loop spacing
-  startPoint = { x: 0, y: 0 }, // Default starting point
-  endPoint = { x: 0, y: 0 }, // Default ending point
+  loopSpacing = 1,
+  startPoint = { x: 0, y: 0 },
+  endPoint = { x: 0, y: 0 },
+  pathMethod = 'doubleSpiral', // Default path method
   onDragStop,
   onPipeLengthCalculated,
-  onStartPointChange, // Callback to update start point
-  onEndPointChange,   // Callback to update end point
-  maxPipeLength = 90, // Default max pipe length in meters
+  onStartPointChange,
+  onEndPointChange,
+  maxPipeLength = 90,
 }) => {
   // Parse the dimensions (e.g., "5x4" becomes [5, 4])
   const [length, width] = useMemo(() => {
@@ -43,34 +44,56 @@ const DraggableRoom = ({
 
   // Create the grid for the room
   const gridResolution = 0.1; // 10 cm per grid cell
-  const grid = useMemo(() => createRoomGrid(dimensions, gridResolution), [dimensions, gridResolution]);
+  const grid = useMemo(
+    () => createRoomGrid(dimensions, gridResolution),
+    [dimensions, gridResolution]
+  );
 
   // Add obstacles to the grid (if any)
-  const gridWithObstacles = useMemo(() => addObstaclesToGrid(grid, obstacles), [grid, obstacles]);
+  const gridWithObstacles = useMemo(
+    () => addObstaclesToGrid(grid, obstacles),
+    [grid, obstacles]
+  );
 
   // Add passageways to the grid (if any)
-  const gridWithPassageways = useMemo(() => addPassagewaysToGrid(
-    gridWithObstacles,
-    passageways,
-    dimensions,
-    gridResolution
-  ), [gridWithObstacles, passageways, dimensions, gridResolution]);
+  const gridWithPassageways = useMemo(
+    () =>
+      addPassagewaysToGrid(
+        gridWithObstacles,
+        passageways,
+        dimensions,
+        gridResolution
+      ),
+    [gridWithObstacles, passageways, dimensions, gridResolution]
+  );
 
   // Add no-pipe zones to the grid (if any)
-  const finalGrid = useMemo(() => addNoPipeZonesToGrid(
-    gridWithPassageways,
-    noPipeZones
-  ), [gridWithPassageways, noPipeZones]);
+  const finalGrid = useMemo(
+    () => addNoPipeZonesToGrid(gridWithPassageways, noPipeZones),
+    [gridWithPassageways, noPipeZones]
+  );
 
   // Generate the heating loop path
-  const { path, totalPipeLength } = useMemo(() => generateHeatingLoopPath(finalGrid, {
-    gridSize: gridResolution,
-    loopSpacing: loopSpacing,
-    startPoint: startPoint,
-    endPoint: endPoint,
-    maxPipeLength: maxPipeLength,
-  }), [finalGrid, gridResolution, loopSpacing, startPoint, endPoint, maxPipeLength]);
-  
+  const { path, totalPipeLength } = useMemo(
+    () =>
+      generateHeatingLoopPath(finalGrid, {
+        gridSize: gridResolution,
+        loopSpacing: loopSpacing,
+        startPoint: startPoint,
+        endPoint: endPoint,
+        maxPipeLength: maxPipeLength,
+        method: pathMethod, // Pass the selected path generation method
+      }),
+    [
+      finalGrid,
+      gridResolution,
+      loopSpacing,
+      startPoint,
+      endPoint,
+      maxPipeLength,
+      pathMethod,
+    ]
+  );
 
   // Adjust cell size for the RoomCanvas
   const cellSizeX = useMemo(() => roomWidth / grid[0].length, [roomWidth, grid]);
