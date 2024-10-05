@@ -24,6 +24,7 @@ const HouseCanvas = () => {
         loopSpacing: 1, // Default loop spacing
         startingPoint: { x: 0, y: 0 }, // Default starting point
         endingPoint: { x: 0, y: 0 },   // Initialize ending point
+        pathMethod: 'doubleSpiral',    // Default path generation method
       };
     });
     return initialConfig;
@@ -73,6 +74,18 @@ const HouseCanvas = () => {
     }));
   };
 
+  // Function to handle path generation method change per room
+  const handlePathMethodChange = (roomName, newMethod) => {
+    console.log(`Updating path method for ${roomName}: ${newMethod}`);
+    setConfigurations((prev) => ({
+      ...prev,
+      [roomName]: {
+        ...prev[roomName],
+        pathMethod: newMethod,
+      },
+    }));
+  };
+
   if (!rooms || rooms.length === 0) {
     return (
       <div>
@@ -113,6 +126,19 @@ const HouseCanvas = () => {
                 )
               }
             />
+
+            {/* Path Generation Method Control */}
+            <label htmlFor={`pathMethod-${room.name}`}>Path Generation Method:</label>
+            <select
+              id={`pathMethod-${room.name}`}
+              value={configurations[room.name].pathMethod}
+              onChange={(e) =>
+                handlePathMethodChange(room.name, e.target.value)
+              }
+            >
+              <option value="doubleSpiral">Double Spiral</option>
+              <option value="original">Original Method</option>
+            </select>
 
             {/* Starting Point Controls */}
             <div className="starting-point-controls">
@@ -195,6 +221,7 @@ const HouseCanvas = () => {
                 loopSpacing: 1,
                 startingPoint: { x: 0, y: 0 },
                 endingPoint: { x: 0, y: 0 },
+                pathMethod: 'doubleSpiral', // Reset to default
               };
             });
             setConfigurations(resetConfig);
@@ -243,6 +270,7 @@ const HouseCanvas = () => {
               loopSpacing={configurations[room.name].loopSpacing} // Pass loopSpacing
               startPoint={configurations[room.name].startingPoint}
               endPoint={configurations[room.name].endingPoint} // Pass endingPoint
+              pathMethod={configurations[room.name].pathMethod} // Pass pathMethod
               onDragStop={(e, data) => {
                 setRoomPositions((prev) => ({
                   ...prev,
