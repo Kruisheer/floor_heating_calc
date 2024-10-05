@@ -1,76 +1,155 @@
 /* src/components/HouseCanvas.css */
 
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f9;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* House Canvas Page Styling */
 .house-canvas-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  padding: 20px;
+  gap: 20px;
 }
 
+h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* House Canvas Container */
 .house-canvas-container {
   display: flex;
-  justify-content: space-between;
-  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: flex-start;
-  padding: 20px;
+  gap: 30px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/* House Canvas */
 .house-canvas {
   position: relative;
-  background-color: #f9f9f9;
+  background-color: #fff;
   border: 1px solid #ccc;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  background-image: linear-gradient(to right, #eee 1px, transparent 1px),
-    linear-gradient(to bottom, #eee 1px, transparent 1px);
-  background-size: 50px 50px;
+  border-radius: 8px;
+  padding: 10px;
   flex-grow: 1;
+  max-width: 800px;
+  min-height: 600px;
+  background-image: linear-gradient(to right, #eaeaea 1px, transparent 1px),
+    linear-gradient(to bottom, #eaeaea 1px, transparent 1px);
+  background-size: 25px 25px;
 }
 
+/* Configuration Sidebar */
 .configuration-sidebar {
-  width: 250px;
-  padding: 10px;
-  border-left: 1px solid #ccc;
-  text-align: left;
-  margin-left: 20px; /* Space between canvas and the sidebar */
-  background-color: #f0f0f0;
-  align-self: flex-start; /* Ensure the sidebar starts at the top */
+  width: 300px;
+  max-width: 100%;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
+.configuration-sidebar h3 {
+  color: #555;
+  font-size: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+/* Room Info Sidebar */
 .room-info-sidebar {
-  width: 250px;
-  padding: 10px;
-  border-right: 1px solid #ccc;
-  text-align: left;
-  overflow-y: auto;
-  flex-grow: 0; /* Prevent it from growing */
-  margin-right: 20px; /* Space between sidebars */
+  width: 300px;
+  max-width: 100%;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Additional Styles for Configuration Settings */
+.room-info-sidebar h3 {
+  color: #555;
+  font-size: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.room-info-sidebar .room-info {
+  margin-bottom: 15px;
+  color: #444;
+  font-size: 1rem;
+}
+
+/* Configuration Item Styling */
 .configuration-sidebar .config-item {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 
 .configuration-sidebar label {
-  display: block;
-  margin-bottom: 5px;
+  color: #333;
   font-weight: bold;
+  margin-bottom: 5px;
 }
 
 .configuration-sidebar input[type="number"],
 .configuration-sidebar select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
   width: 100%;
-  padding: 5px;
   box-sizing: border-box;
+  background-color: #f9f9f9;
 }
 
+.configuration-sidebar input[type="number"]:focus,
+.configuration-sidebar select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+/* Reset Button */
 .reset-button {
   background-color: #e74c3c;
   color: white;
-  padding: 8px 12px;
+  padding: 12px 15px;
+  font-size: 1rem;
+  font-weight: bold;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
   width: 100%;
 }
 
@@ -78,36 +157,21 @@
   background-color: #c0392b;
 }
 
+/* Next Button */
 .next-button {
-  margin-top: 20px;
-  padding: 12px 24px;
-  font-size: 1em;
-  background-color: #28a745; /* Green color */
+  padding: 14px 20px;
+  font-size: 1.1rem;
+  background-color: #28a745;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
 }
 
 .next-button:hover {
   background-color: #218838;
-}
-
-/* Starting and Ending Point Controls */
-.configuration-sidebar .end-point-controls {
-  margin-top: 10px;
-}
-
-.configuration-sidebar .end-point-controls label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.configuration-sidebar .end-point-controls input[type="number"] {
-  width: 100%;
-  padding: 5px;
-  box-sizing: border-box;
 }
 
 .next-button:disabled {
@@ -115,18 +179,58 @@
   cursor: not-allowed;
 }
 
-/* Ensure End Point Controls are Styled Properly */
-.configuration-sidebar .ending-point-controls label {
-  margin-top: 10px;
-  font-weight: bold;
+/* Sidebar Controls for Starting and Ending Points */
+.starting-point-controls,
+.ending-point-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.configuration-sidebar .ending-point-controls div {
-  margin-bottom: 5px;
+.starting-point-controls div,
+.ending-point-controls div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Styling for Path Method Selection */
+.starting-point-controls input[type="number"],
+.ending-point-controls input[type="number"] {
+  width: calc(100% - 50px);
+  padding: 6px;
+}
+
+/* Path Generation Method Control */
 .configuration-sidebar select {
-  margin-bottom: 10px;
-  font-size: 1em;
+  font-size: 1rem;
+  padding: 10px;
+}
+
+/* General Responsiveness */
+@media (max-width: 1024px) {
+  .house-canvas-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .configuration-sidebar,
+  .room-info-sidebar {
+    width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  .house-canvas-page h2 {
+    font-size: 1.8rem;
+  }
+
+  .configuration-sidebar,
+  .room-info-sidebar {
+    padding: 15px;
+  }
+
+  .reset-button,
+  .next-button {
+    font-size: 0.9rem;
+  }
 }
