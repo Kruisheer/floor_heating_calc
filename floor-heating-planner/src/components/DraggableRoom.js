@@ -65,11 +65,12 @@ const DraggableRoom = ({
   // Generate the heating loop path
   const { path, totalPipeLength } = useMemo(() => generateHeatingLoopPath(finalGrid, {
     gridSize: gridResolution,
-    loopSpacing: loopSpacing, // Pass loopSpacing to the path generator
+    loopSpacing: loopSpacing,
     startPoint: startPoint,
-    endPoint: endPoint,         // Pass endPoint to the path generator
-    maxPipeLength: maxPipeLength, // Pass maxPipeLength
+    endPoint: endPoint,
+    maxPipeLength: maxPipeLength,
   }), [finalGrid, gridResolution, loopSpacing, startPoint, endPoint, maxPipeLength]);
+  
 
   // Adjust cell size for the RoomCanvas
   const cellSizeX = useMemo(() => roomWidth / grid[0].length, [roomWidth, grid]);
