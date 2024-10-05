@@ -1,7 +1,9 @@
 // src/utils/pathGenerator.js
 
+import { generateDoubleSpiralPath } from './doubleSpiralGenerator';
+
 /**
- * Generates a heating loop path for underfloor heating using a double spiral pattern with configurable loop spacing.
+ * Generates a heating loop path for underfloor heating using a double spiral pattern.
  *
  * @param {Array<Array<number>>} grid - 2D array representing the floor plan grid. Cells with value -1 are obstacles.
  * @param {Object} options - Configuration options.
@@ -24,97 +26,62 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
   const rows = grid.length;
   const cols = grid[0].length;
+
+  // Generate the double spiral path
+  const size = Math.min(rows, cols);
+  const spiralPath = generateDoubleSpiralPath(size, loopSpacing);
+
   const path = [];
-
-  console.log(`Grid Size: Rows=${rows}, Cols=${cols}`);
-  console.log(`Start Point: x=${startPoint.x}, y=${startPoint.y}`);
-  console.log(`End Point: x=${endPoint.x}, y=${endPoint.y}`);
-  console.log(`Loop Spacing: ${loopSpacing} grid units`);
-
-  // Validate start and end points
-  if (
-    startPoint.x < 0 || startPoint.x >= cols ||
-    startPoint.y < 0 || startPoint.y >= rows
-  ) {
-    throw new Error('Starting point is out of grid boundaries.');
-  }
-
-  if (
-    endPoint.x < 0 || endPoint.x >= cols ||
-    endPoint.y < 0 || endPoint.y >= rows
-  ) {
-    throw new Error('Ending point is out of grid boundaries.');
-  }
-
-  // Ensure start and end points are not obstacles
-  if (grid[startPoint.y][startPoint.x] === -1) {
-    throw new Error('Starting point is an obstacle.');
-  }
-
-  if (grid[endPoint.y][endPoint.x] === -1) {
-    throw new Error('Ending point is an obstacle.');
-  }
+  let totalPipeLength = 0;
 
   // Create a copy of the grid to mark visited cells
   const visited = grid.map(row => row.map(cell => (cell === -1 ? -1 : 0)));
 
-  // Initialize path with start point
-  path.push({ x: startPoint.x, y: startPoint.y });
-  visited[startPoint.y][startPoint.x] = 1;
-  console.log('Added starting point to path');
+  // Adjust spiralPath to fit within the grid and apply start and end points
+  for (let i = 0; i < spiralPath.length; i++) {
+    let { x, y } = spiralPath[i];
 
-  // Initialize boundaries based on start and end points
-  let left = Math.min(startPoint.x, endPoint.x);
-  let right = Math.max(startPoint.x, endPoint.x);
-  let top = Math.min(startPoint.y, endPoint.y);
-  let bottom = Math.max(startPoint.y, endPoint.y);
+    // Offset the spiral to start from the startPoint
+    x = x + startPoint.x;
+    y = y + startPoint.y;
 
-  let totalPipeLength = 0;
-  const maxIterations = cols * rows * 4; // Prevent infinite loops
-  let iterations = 0;
-
-  while (left > 0 || right < cols - 1 || top > 0 || bottom < rows - 1) {
-    // Expand boundaries
-    left = Math.max(0, left - loopSpacing);
-    right = Math.min(cols - 1, right + loopSpacing);
-    top = Math.max(0, top - loopSpacing);
-    bottom = Math.min(rows - 1, bottom + loopSpacing);
-
-    // Move right along the top boundary
-    for (let i = left; i <= right; i += loopSpacing) {
-      addPointToPath(i, top);
+    // Boundary check
+    if (x < 0 || x >= cols || y < 0 || y >= rows) {
+      console.warn(`Point (${x}, ${y}) is out of grid boundaries.`);
+      continue;
     }
 
-    // Move down along the right boundary
-    for (let i = top + loopSpacing; i <= bottom; i += loopSpacing) {
-      addPointToPath(right, i);
+    // Obstacle check
+    if (grid[y][x] === -1) {
+      console.warn(`Point (${x}, ${y}) is an obstacle.`);
+      continue;
     }
 
-    // Move left along the bottom boundary
-    for (let i = right - loopSpacing; i >= left; i -= loopSpacing) {
-      addPointToPath(i, bottom);
+    // Avoid overlapping
+    if (visited[y][x] === 1) {
+      console.warn(`Point (${x}, ${y}) is already in the path.`);
+      continue;
     }
 
-    // Move up along the left boundary
-    for (let i = bottom - loopSpacing; i >= top + loopSpacing; i -= loopSpacing) { // Adjusted to prevent overlapping
-      addPointToPath(left, i);
+    // Calculate segment length
+    if (path.length > 0) {
+      const lastPoint = path[path.length - 1];
+      const segmentLength = calculateDistance(lastPoint, { x, y }, gridSize);
+      if (totalPipeLength + segmentLength > maxPipeLength) {
+        console.log('Max pipe length exceeded during spiral.');
+        break;
+      }
+      totalPipeLength += segmentLength;
     }
 
-    iterations++;
-    if (iterations > maxIterations) {
-      console.warn('Reached maximum iterations, stopping path generation to prevent infinite loop.');
-      break;
-    }
-
-    // Check if we've covered the entire grid
-    if (left === 0 && right === cols - 1 && top === 0 && bottom === rows - 1) {
-      break;
-    }
+    // Mark as visited and add point to path
+    visited[y][x] = 1;
+    path.push({ x, y });
   }
 
-  // After spiral, attempt to connect to end point if not already connected
+  // Attempt to connect to end point if not already connected
   const lastPoint = path[path.length - 1];
-  if (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y) {
+  if (lastPoint && (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)) {
     console.log('Attempting to connect to end point using BFS');
     const connectionPath = findPathToEndPoint(
       lastPoint.x,
@@ -143,33 +110,6 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   console.log('Path Generation Completed');
 
   return { path, totalPipeLength };
-
-  /**
-   * Adds a point to the path if it's valid.
-   *
-   * @param {number} x - X-coordinate.
-   * @param {number} y - Y-coordinate.
-   */
-  function addPointToPath(x, y) {
-    if (grid[y][x] !== -1 && visited[y][x] === 0) {
-      const lastPoint = path[path.length - 1];
-      const segmentLength = calculateDistance(lastPoint, { x, y }, gridSize);
-      if (totalPipeLength + segmentLength > maxPipeLength) {
-        console.log('Max pipe length exceeded during spiral.');
-        return;
-      }
-      path.push({ x, y });
-      visited[y][x] = 1;
-      totalPipeLength += segmentLength;
-      console.log('Added point:', { x, y });
-
-      // Check if we've reached the end point
-      if (x === endPoint.x && y === endPoint.y) {
-        console.log('End point reached.');
-        return { path, totalPipeLength };
-      }
-    }
-  }
 };
 
 /**
@@ -227,7 +167,7 @@ const findPathToEndPoint = (x, y, endPoint, grid, visited, path) => {
         ny < grid.length &&
         grid[ny][nx] !== -1 &&
         !(nKey in cameFrom) &&
-        !path.some((point) => point.x === nx && point.y === ny) // Avoid overlapping
+        visited[ny][nx] === 0 // Ensure we don't revisit
       ) {
         queue.push({ x: nx, y: ny });
         cameFrom[nKey] = key(current.x, current.y);
