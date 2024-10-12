@@ -6,7 +6,7 @@
  * @param {number} rows - Number of rows in the grid.
  * @param {number} cols - Number of columns in the grid.
  * @param {number} loopSpacing - Spacing between spiral loops in grid units.
- * @returns {Array<{x: number, y: number}>} - Array of points representing the double spiral path.
+ * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral path.
  */
 export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
   const spiralPath = [];
@@ -39,7 +39,7 @@ export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
     // Move up along the left column
     if (left <= right) {
       for (let y = bottom; y >= top; y--) {
-        spiralPath.push({ x: left, y });
+        spiralPath.push({ x, y: left });
       }
       left += loopSpacing;
     }
@@ -57,67 +57,58 @@ export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
  * @returns {Array<{ x: number, y: number }>} - Array of points representing the counter-flow spiral path.
  */
 export const generateCounterFlowSpiralPath = (rows, cols, loopSpacing = 2) => {
-  const path = [];
+  const supplyPath = [];
+  const returnPath = [];
+
   let left = 0;
   let right = cols - 1;
   let top = 0;
   let bottom = rows - 1;
 
   while (left <= right && top <= bottom) {
-    // Supply path (moving inwards)
-    // Move right along top row
+    // **Supply Path (Inward Spiral)**
+    // Move right along the top row
     for (let x = left; x <= right; x++) {
-      path.push({ x, y: top });
+      supplyPath.push({ x, y: top });
     }
     top += loopSpacing;
 
-    // Move down along right column
+    // Move down along the right column
     for (let y = top; y <= bottom; y++) {
-      path.push({ x: right, y });
+      supplyPath.push({ x: right, y });
     }
     right -= loopSpacing;
 
+    // **Return Path (Outward Spiral)**
     if (left <= right && top <= bottom) {
-      // Return path (moving outwards)
-      // Move left along bottom row
+      // Move left along the bottom row
       for (let x = right; x >= left; x--) {
-        path.push({ x, y: bottom });
+        returnPath.push({ x, y: bottom });
       }
       bottom -= loopSpacing;
 
-      // Move up along left column
+      // Move up along the left column
       for (let y = bottom; y >= top; y--) {
-        path.push({ x: left, y });
+        returnPath.push({ x, y: left });
       }
       left += loopSpacing;
     }
   }
 
-  return path;
-};
+  // Reverse the return path to align it properly with the supply path
+  returnPath.reverse();
 
-/**
- * Helper function to generate a spiral layer.
- */
-const generateSpiralLayer = (path, left, right, top, bottom) => {
-  // Move right along top row
-  for (let x = left; x <= right; x++) {
-    path.push({ x, y: top });
-  }
-  // Move down along right column
-  for (let y = top + 1; y <= bottom; y++) {
-    path.push({ x: right, y });
-  }
-  // Move left along bottom row
-  if (bottom > top) {
-    for (let x = right - 1; x >= left; x--) {
-      path.push({ x, y: bottom });
+  // **Interleave Supply and Return Paths**
+  const path = [];
+  const maxLength = Math.max(supplyPath.length, returnPath.length);
+  for (let i = 0; i < maxLength; i++) {
+    if (i < supplyPath.length) {
+      path.push(supplyPath[i]);
+    }
+    if (i < returnPath.length) {
+      path.push(returnPath[i]);
     }
   }
-  // Move up along left column
-  if (right > left) {
-    for (let y = bottom - 1; y > top; y--) {
-      path.push({ x: left, y });
-    }
-  }
+
+  return path;
 };
