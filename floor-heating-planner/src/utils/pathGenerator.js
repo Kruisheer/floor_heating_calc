@@ -33,29 +33,29 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   let totalPipeLength = 0;
 
   // Use the selected path generation method
-  if (method === 'doubleSpiralSnake') {
-    console.log('Using double spiral snake path generation method.');
+if (method === 'doubleSpiralSnake') {
+  console.log('Using double spiral snake path generation method.');
 
-    // Generate the counter-flow spiral path
-    const spiralPath = generateCounterFlowSpiralPath(rows, cols, loopSpacing);
+  // Generate the counter-flow spiral path
+  const spiralPath = generateCounterFlowSpiralPath(rows, cols, loopSpacing);
 
-    // Adjust path based on start point
-    path = adjustPathToStartPoint(spiralPath, startPoint, grid);
+  // Adjust path based on start point
+  path = adjustPathToStartPoint(spiralPath, startPoint, grid);
 
-    // Calculate total pipe length
-    totalPipeLength = calculateSegmentLength(path, gridSize);
+  // Calculate total pipe length
+  totalPipeLength = calculateSegmentLength(path, gridSize);
 
-  } else if (method === 'doubleSpiral') {
-    console.log('Using double spiral path generation method.');
+} else if (method === 'doubleSpiral') {
+  console.log('Using double spiral path generation method.');
 
-    // Generate the double spiral path
-    const spiralPath = generateDoubleSpiralPath(rows, cols, loopSpacing);
+  // Generate the double spiral path
+  const spiralPath = generateDoubleSpiralPath(rows, cols, loopSpacing);
 
-    // Adjust path based on start point
-    path = adjustPathToStartPoint(spiralPath, startPoint, grid);
+  // Adjust path based on start point
+  path = adjustPathToStartPoint(spiralPath, startPoint, grid);
 
-    // Calculate total pipe length
-    totalPipeLength = calculateSegmentLength(path, gridSize);
+  // Calculate total pipe length
+  totalPipeLength = calculateSegmentLength(path, gridSize);
 
   } else if (method === 'original') {
     console.log('Using original path generation method.');
