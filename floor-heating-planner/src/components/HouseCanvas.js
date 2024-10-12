@@ -206,6 +206,7 @@ const HouseCanvas = () => {
                 handlePathMethodChange(room.name, e.target.value)
               }
             >
+              <option value="doubleSpiralSnake">Double Spiral - Snake</option>
               <option value="doubleSpiral">Double Spiral</option>
               <option value="original">Original Method</option>
             </select>
