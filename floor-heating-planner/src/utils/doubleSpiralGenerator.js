@@ -34,17 +34,17 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       y.push(top);
     }
     // Move down
-    for (let j = top + 1; j <= bottom; j++) {
+    for (let j = top + loopSpacing; j <= bottom; j++) {
       x.push(right);
       y.push(j);
     }
     // Move left
-    for (let j = right - 1; j >= left; j--) {
+    for (let j = right - loopSpacing; j >= left; j--) {
       x.push(j);
       y.push(bottom);
     }
-    // Move up
-    for (let j = bottom - 1; j > top; j--) {
+    // Move up (shortened by loopSpacing)
+    for (let j = bottom - loopSpacing; j > top; j--) {
       x.push(left);
       y.push(j);
     }
@@ -66,17 +66,17 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       yReturn.push(top);
     }
     // Move down
-    for (let j = top + 1; j <= bottom; j++) {
+    for (let j = top + loopSpacing; j <= bottom; j++) {
       xReturn.push(right);
       yReturn.push(j);
     }
     // Move left
-    for (let j = right - 1; j >= left; j--) {
+    for (let j = right - loopSpacing; j >= left; j--) {
       xReturn.push(j);
       yReturn.push(bottom);
     }
-    // Move up
-    for (let j = bottom - 1; j > top; j--) {
+    // Move up (shortened by loopSpacing)
+    for (let j = bottom - loopSpacing; j > top; j--) {
       xReturn.push(left);
       yReturn.push(j);
     }
@@ -107,12 +107,12 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
 /**
  * Generates a double spiral path that uses only right angles.
  *
- * @param {number} rows - Number of rows in the grid.
  * @param {number} cols - Number of columns in the grid.
+ * @param {number} rows - Number of rows in the grid.
  * @param {number} loopSpacing - Spacing between spiral loops in grid units.
  * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral path.
  */
-export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
+export const generateDoubleSpiralPath = (cols, rows, loopSpacing = 2) => {
   const spiralPath = [];
   let left = 0;
   let right = cols - 1;
