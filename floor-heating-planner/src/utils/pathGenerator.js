@@ -12,19 +12,21 @@ import { generateDoubleSpiralPath } from './doubleSpiralGenerator';
  * @param {Object} [options.endPoint] - Ending point for the loop { x: number, y: number }.
  * @param {number} [options.maxPipeLength=Infinity] - Maximum allowed pipe length in meters.
  * @param {number} [options.loopSpacing=2] - Spacing between loops in grid units.
- * @param {string} [options.method='doubleSpiral'] - Path generation method: 'doubleSpiral' or 'original'.
+ * @param {number} [options.spiralSpacing=2] - Spacing between outgoing and incoming spirals in grid units (only for doubleSpiral).
+ * @param {string} [options.method='doubleSpiral'] - Path generation method: 'doubleSpiral', 'original', or 'snake'.
  *
  * @returns {Object} - Object containing the generated path and total pipe length.
  */
 export const generateHeatingLoopPath = (grid, options = {}) => {
   console.log('Starting generateHeatingLoopPath');
 
-  const gridSize = options.gridSize || 0.1; // in meters (default is 10 cm)
+  const gridSize = options.gridSize || 0.1; // in meters
   const maxPipeLength = options.maxPipeLength || Infinity; // in meters
-  const startPoint = options.startPoint || { x: 0, y: 0 }; // Start near the collector
-  const endPoint = options.endPoint || { x: 0, y: 0 };     // End point
-  const loopSpacing = options.loopSpacing || 2;            // Loop spacing in grid units
-  const method = options.method || 'doubleSpiral';         // Path generation method
+  const startPoint = options.startPoint || { x: 0, y: 0 };
+  const endPoint = options.endPoint || { x: 0, y: 0 };
+  const loopSpacing = options.loopSpacing || 2;
+  const spiralSpacing = options.spiralSpacing || 2;
+  const method = options.method || 'doubleSpiral';
 
   const rows = grid.length;
   const cols = grid[0].length;
@@ -32,44 +34,47 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   let path = [];
   let totalPipeLength = 0;
 
-  // Use the selected path generation method
   if (method === 'doubleSpiral') {
     console.log('Using double spiral path generation method.');
 
     // Generate the double spiral path
-    const size = Math.min(rows - startPoint.y, cols - startPoint.x);
-    const spiralPath = generateDoubleSpiralPath(size, loopSpacing);
+    const spiralPath = generateDoubleSpiralPath(rows, cols, loopSpacing, spiralSpacing);
 
     // Create a copy of the grid to mark visited cells
     const visited = grid.map(row => row.map(cell => (cell === -1 ? -1 : 0)));
 
-    // Offset the spiral path based on the start point
+    // Adjust the spiral path to fit within the grid and apply start point offset
     for (let i = 0; i < spiralPath.length; i++) {
       let { x, y } = spiralPath[i];
 
-      // Adjust coordinates to start at startPoint
+      // Offset the spiral to start from the startPoint
       x += startPoint.x;
       y += startPoint.y;
 
-      // Check if the point is within the boundaries and not an obstacle
-      if (x >= 0 && x < cols && y >= 0 && y < rows && grid[y][x] !== -1 && visited[y][x] === 0) {
-        path.push({ x, y });
-        visited[y][x] = 1;
-
-        // Calculate distance if not the first point
-        if (path.length > 1) {
-          const lastPoint = path[path.length - 2];
-          const segmentLength = calculateDistance(lastPoint, { x, y }, gridSize);
+      // Boundary and obstacle checks
+      if (
+        x >= 0 &&
+        x < cols &&
+        y >= 0 &&
+        y < rows &&
+        grid[y][x] !== -1 &&
+        visited[y][x] === 0
+      ) {
+        // Calculate segment length
+        if (path.length > 0) {
+          const lastPoint = path[path.length - 1];
+          const segmentLength = calculateManhattanDistance(lastPoint, { x, y }, gridSize);
           totalPipeLength += segmentLength;
 
-          // Stop if max pipe length is exceeded
           if (totalPipeLength > maxPipeLength) {
-            console.log('Max pipe length exceeded.');
-            return { path, totalPipeLength };
+            console.log('Max pipe length exceeded during double spiral.');
+            break;
           }
         }
-      } else {
-        console.warn(`Point (${x}, ${y}) is invalid or already visited.`);
+
+        // Mark as visited and add point to path
+        visited[y][x] = 1;
+        path.push({ x, y });
       }
     }
 
@@ -99,20 +104,10 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
         console.warn('No connection path found to the end point.');
       }
     }
-
   } else if (method === 'original') {
     console.log('Using original path generation method.');
 
-    // Original spiral path generation logic
-    // Create a copy of the grid to mark visited cells
-    const visited = grid.map(row => row.map(cell => (cell === -1 ? -1 : 0)));
-
-    // Initialize path with start point
-    path.push({ x: startPoint.x, y: startPoint.y });
-    visited[startPoint.y][startPoint.x] = 1;
-    console.log('Added starting point to path');
-
-    // Initialize boundaries based on start and end points
+    // Original spiral path generation logic with right-angle bends
     let left = startPoint.x;
     let right = startPoint.x;
     let top = startPoint.y;
@@ -120,6 +115,14 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
     const maxIterations = cols * rows * 4; // Prevent infinite loops
     let iterations = 0;
+
+    // Create a copy of the grid to mark visited cells
+    const visited = grid.map(row => row.map(cell => (cell === -1 ? -1 : 0)));
+
+    // Initialize path with start point
+    path.push({ x: startPoint.x, y: startPoint.y });
+    visited[startPoint.y][startPoint.x] = 1;
+    console.log('Added starting point to path');
 
     while (left > 0 || right < cols - 1 || top > 0 || bottom < rows - 1) {
       // Expand boundaries
@@ -129,22 +132,22 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
       bottom = Math.min(rows - 1, bottom + loopSpacing);
 
       // Move right along the top boundary
-      for (let i = left; i <= right; i += 1) {
+      for (let i = left; i <= right; i++) {
         addPointToPath(i, top);
       }
 
       // Move down along the right boundary
-      for (let i = top + 1; i <= bottom; i += 1) {
+      for (let i = top + 1; i <= bottom; i++) {
         addPointToPath(right, i);
       }
 
       // Move left along the bottom boundary
-      for (let i = right - 1; i >= left; i -= 1) {
+      for (let i = right - 1; i >= left; i--) {
         addPointToPath(i, bottom);
       }
 
       // Move up along the left boundary
-      for (let i = bottom - 1; i > top; i -= 1) {
+      for (let i = bottom - 1; i > top; i--) {
         addPointToPath(left, i);
       }
 
@@ -161,12 +164,12 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     }
 
     // Attempt to connect to end point if not already connected
-    const lastPoint = path[path.length - 1];
-    if (lastPoint && (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)) {
+    const lastPointOriginal = path[path.length - 1];
+    if (lastPointOriginal && (lastPointOriginal.x !== endPoint.x || lastPointOriginal.y !== endPoint.y)) {
       console.log('Attempting to connect to end point using BFS');
       const connectionPath = findPathToEndPoint(
-        lastPoint.x,
-        lastPoint.y,
+        lastPointOriginal.x,
+        lastPointOriginal.y,
         endPoint,
         grid,
         visited,
@@ -189,26 +192,44 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
     // Helper function to add point to path
     function addPointToPath(x, y) {
-      if (grid[y][x] !== -1 && visited[y][x] === 0) {
+      if (x >= 0 && x < cols && y >= 0 && y < rows && grid[y][x] !== -1 && visited[y][x] === 0) {
         const lastPoint = path[path.length - 1];
-        const segmentLength = calculateDistance(lastPoint, { x, y }, gridSize);
-        if (totalPipeLength + segmentLength > maxPipeLength) {
+        const segmentLength = calculateManhattanDistance(lastPoint, { x, y }, gridSize);
+        totalPipeLength += segmentLength;
+
+        if (totalPipeLength > maxPipeLength) {
           console.log('Max pipe length exceeded during spiral.');
           return;
         }
+
         path.push({ x, y });
         visited[y][x] = 1;
-        totalPipeLength += segmentLength;
-        // console.log('Added point:', { x, y });
+      }
+    }
+  } else if (method === 'snake') {
+    console.log('Using snake path generation method.');
 
-        // Check if we've reached the end point
-        if (x === endPoint.x && y === endPoint.y) {
-          console.log('End point reached.');
-          return { path, totalPipeLength };
+    // Snake pattern path generation (back-and-forth horizontal movement)
+    for (let y = 0; y < rows; y++) {
+      if (y % 2 === 0) {
+        // Move right on even rows
+        for (let x = 0; x < cols; x++) {
+          if (grid[y][x] !== -1) {
+            path.push({ x, y });
+          }
+        }
+      } else {
+        // Move left on odd rows
+        for (let x = cols - 1; x >= 0; x--) {
+          if (grid[y][x] !== -1) {
+            path.push({ x, y });
+          }
         }
       }
     }
 
+    // Calculate total pipe length using Manhattan distance
+    totalPipeLength = calculateSegmentLength(path, gridSize);
   } else {
     throw new Error(`Unknown path generation method: ${method}`);
   }
@@ -256,10 +277,10 @@ const findPathToEndPoint = (x, y, endPoint, grid, visited, path) => {
     }
 
     const directions = [
-      { dx: 1, dy: 0 },
-      { dx: -1, dy: 0 },
-      { dx: 0, dy: 1 },
-      { dx: 0, dy: -1 },
+      { dx: 1, dy: 0 },  // Right
+      { dx: -1, dy: 0 }, // Left
+      { dx: 0, dy: 1 },  // Down
+      { dx: 0, dy: -1 }, // Up
     ];
 
     for (const { dx, dy } of directions) {
@@ -287,7 +308,7 @@ const findPathToEndPoint = (x, y, endPoint, grid, visited, path) => {
 };
 
 /**
- * Calculates the distance between two points.
+ * Calculates the Manhattan distance between two points.
  *
  * @param {Object} pointA - First point { x: number, y: number }.
  * @param {Object} pointB - Second point { x: number, y: number }.
@@ -295,14 +316,14 @@ const findPathToEndPoint = (x, y, endPoint, grid, visited, path) => {
  *
  * @returns {number} - Distance in meters.
  */
-const calculateDistance = (pointA, pointB, gridSize) => {
-  const dx = pointB.x - pointA.x;
-  const dy = pointB.y - pointA.y;
-  return Math.sqrt(dx * dx + dy * dy) * gridSize;
+const calculateManhattanDistance = (pointA, pointB, gridSize) => {
+  const dx = Math.abs(pointB.x - pointA.x);
+  const dy = Math.abs(pointB.y - pointA.y);
+  return (dx + dy) * gridSize; // Manhattan distance
 };
 
 /**
- * Calculates the total length of a path segment.
+ * Calculates the total length of a path segment using Manhattan distance.
  *
  * @param {Array<{ x: number, y: number }>} segment - Array of points representing the path segment.
  * @param {number} gridSize - Physical size of each grid cell in meters.
@@ -316,9 +337,9 @@ const calculateSegmentLength = (segment, gridSize) => {
 
   let length = 0;
   for (let i = 1; i < segment.length; i++) {
-    const dx = segment[i].x - segment[i - 1].x;
-    const dy = segment[i].y - segment[i - 1].y;
-    length += Math.sqrt(dx * dx + dy * dy) * gridSize;
+    const dx = Math.abs(segment[i].x - segment[i - 1].x);
+    const dy = Math.abs(segment[i].y - segment[i - 1].y);
+    length += (dx + dy) * gridSize;
   }
   return length;
 };
