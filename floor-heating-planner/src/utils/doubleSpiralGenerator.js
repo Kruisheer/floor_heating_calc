@@ -14,38 +14,28 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
 
   const sizeX = cols;
   const sizeY = rows;
-
-  // Determine the maximum number of layers based on grid dimensions and loop spacing
-  const maxLayers = Math.min(
-    Math.floor(sizeX / (loopSpacing * 2)),
-    Math.floor(sizeY / (loopSpacing * 2))
-  );
+  const size = Math.min(sizeX, sizeY);
 
   // Outward spiral
-  for (let i = 0; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
-    const left = i;
-    const right = sizeX - i - 1;
-    const top = i;
-    const bottom = sizeY - i - 1;
-
+  for (let i = 0; i < size; i += loopSpacing * 2) {
     // Move right
-    for (let j = left; j <= right; j++) {
+    for (let j = i; j < size - i; j++) {
       x.push(j);
-      y.push(top);
+      y.push(i);
     }
     // Move down
-    for (let j = top + loopSpacing; j <= bottom; j++) {
-      x.push(right);
+    for (let j = i + 1; j < size - i; j++) {
+      x.push(size - i - 1);
       y.push(j);
     }
     // Move left
-    for (let j = right - loopSpacing; j >= left; j--) {
+    for (let j = size - i - 2; j >= i; j--) {
       x.push(j);
-      y.push(bottom);
+      y.push(size - i - 1);
     }
     // Move up (shortened by loopSpacing)
-    for (let j = bottom - loopSpacing; j > top; j--) {
-      x.push(left);
+    for (let j = size - i - 2; j > i; j--) {
+      x.push(i);
       y.push(j);
     }
   }
@@ -54,30 +44,25 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   const xReturn = [];
   const yReturn = [];
 
-  for (let i = loopSpacing; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
-    const left = i;
-    const right = sizeX - i - 1;
-    const top = i;
-    const bottom = sizeY - i - 1;
-
+  for (let i = loopSpacing; i < size; i += loopSpacing * 2) {
     // Move right
-    for (let j = left; j <= right; j++) {
+    for (let j = i; j < size - i; j++) {
       xReturn.push(j);
-      yReturn.push(top);
+      yReturn.push(i);
     }
     // Move down
-    for (let j = top + loopSpacing; j <= bottom; j++) {
-      xReturn.push(right);
+    for (let j = i + 1; j < size - i; j++) {
+      xReturn.push(size - i - 1);
       yReturn.push(j);
     }
     // Move left
-    for (let j = right - loopSpacing; j >= left; j--) {
+    for (let j = size - i - 2; j >= i; j--) {
       xReturn.push(j);
-      yReturn.push(bottom);
+      yReturn.push(size - i - 1);
     }
     // Move up (shortened by loopSpacing)
-    for (let j = bottom - loopSpacing; j > top; j--) {
-      xReturn.push(left);
+    for (let j = size - i - 2; j > i; j--) {
+      xReturn.push(i);
       yReturn.push(j);
     }
   }
