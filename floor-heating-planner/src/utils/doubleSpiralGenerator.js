@@ -1,115 +1,54 @@
 // src/utils/doubleSpiralGenerator.js
 
 /**
- * Generates a double spiral path that uses only right angles.
+ * Generates a double spiral (serpentine) path with supply and return paths adjacent,
+ * ensuring layers are parallel and connections are smooth without abrupt 90-degree turns.
  *
  * @param {number} rows - Number of rows in the grid.
  * @param {number} cols - Number of columns in the grid.
- * @param {number} loopSpacing - Spacing between spiral loops in grid units.
- * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral path.
- */
-export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
-  const spiralPath = [];
-  let size = Math.min(rows, cols);
-
-  for (let i = 0; i < size; i += loopSpacing * 2) {
-    // Move right
-    for (let j = i; j < size - i; j++) {
-      spiralPath.push({ x: j, y: i });
-    }
-    // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      spiralPath.push({ x: size - i - 1, y: j });
-    }
-    // Move left
-    for (let j = size - i - 2; j >= i; j--) {
-      spiralPath.push({ x: j, y: size - i - 1 });
-    }
-    // Move up (shortened by loopSpacing)
-    for (let j = size - i - 2; j > i + loopSpacing - 1; j--) {
-      spiralPath.push({ x: i, y: j });
-    }
-  }
-
-  return spiralPath;
-};
-
-/**
- * Generates a double spiral with a return spiral, similar to the provided Python version.
- *
- * @param {number} rows - Number of rows in the grid.
- * @param {number} cols - Number of columns in the grid.
- * @param {number} loopSpacing - Spacing between spiral loops in grid units.
- * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral with return path.
+ * @param {number} loopSpacing - Spacing between loops in grid units.
+ * @returns {Array<{ x: number, y: number }>} - Array of points representing the serpentine path.
  */
 export const generateCounterFlowSpiralPath = (rows, cols, loopSpacing = 2) => {
-  const x = [];
-  const y = [];
-  const xReturn = [];
-  const yReturn = [];
-  let size = Math.min(rows, cols);
-
-  // Outward spiral
-  for (let i = 0; i < size; i += loopSpacing * 2) {
-    // Move right
-    for (let j = i; j < size - i; j++) {
-      x.push(j);
-      y.push(i);
-    }
-    // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      x.push(size - i - 1);
-      y.push(j);
-    }
-    // Move left
-    for (let j = size - i - 2; j >= i; j--) {
-      x.push(j);
-      y.push(size - i - 1);
-    }
-    // Move up (shortened)
-    for (let j = size - i - 2; j > i + loopSpacing - 1; j--) {
-      x.push(i);
-      y.push(j);
-    }
-  }
-
-  // Return spiral
-  for (let i = loopSpacing; i < size; i += loopSpacing * 2) {
-    // Move right
-    for (let j = i; j < size - i; j++) {
-      xReturn.push(j);
-      yReturn.push(i);
-    }
-    // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      xReturn.push(size - i - 1);
-      yReturn.push(j);
-    }
-    // Move left
-    for (let j = size - i - 2; j >= i; j--) {
-      xReturn.push(j);
-      yReturn.push(size - i - 1);
-    }
-    // Move up (shortened)
-    for (let j = size - i - 2; j > i + loopSpacing - 1; j--) {
-      xReturn.push(i);
-      yReturn.push(j);
-    }
-  }
-
-  // Align start and end points
-  if (xReturn.length > 0) {
-    xReturn[0] = x[0]; // Align x-coordinate
-  }
-
-  // Combine the paths
-  const combinedX = x.concat(xReturn.reverse());
-  const combinedY = y.concat(yReturn.reverse());
-
-  // Adjust for grid size and starting point
   const path = [];
-  for (let i = 0; i < combinedX.length; i++) {
-    path.push({ x: combinedX[i], y: combinedY[i] });
+  let x = 0;
+  let y = 0;
+  let direction = 'right';
+  let maxX = cols - 1;
+  let minX = 0;
+  let maxY = rows - 1;
+  let minY = 0;
+
+  while (minY <= maxY && minX <= maxX) {
+    if (direction === 'right') {
+      // Move right
+      for (x = minX; x <= maxX; x++) {
+        path.push({ x, y: minY });
+      }
+      minY += loopSpacing;
+      direction = 'down';
+    } else if (direction === 'down') {
+      // Move down
+      for (y = minY; y <= maxY; y++) {
+        path.push({ x: maxX, y });
+      }
+      maxX -= loopSpacing;
+      direction = 'left';
+    } else if (direction === 'left') {
+      // Move left
+      for (x = maxX; x >= minX; x--) {
+        path.push({ x, y: maxY });
+      }
+      maxY -= loopSpacing;
+      direction = 'up';
+    } else if (direction === 'up') {
+      // Move up
+      for (y = maxY; y >= minY; y--) {
+        path.push({ x: minX, y });
+      }
+      minX += loopSpacing;
+      direction = 'right';
+    }
   }
 
   return path;
