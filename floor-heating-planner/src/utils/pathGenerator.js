@@ -47,170 +47,34 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     // Generate the counter-flow spiral path
     const spiralPath = generateCounterFlowSpiralPath(rows, cols, loopSpacing);
 
-    // Create a copy of the grid to mark visited cells
-    const visited = grid.map((row) =>
-      row.map((cell) => (cell === -1 ? -1 : 0))
-    );
-
     // Adjust path based on start point and apply constraints
-    path = [];
-    for (let i = 0; i < spiralPath.length; i++) {
-      let { x, y } = spiralPath[i];
+    const adjustedResult = adjustPathToStartPoint(
+      spiralPath,
+      startPoint,
+      grid,
+      maxPipeLength,
+      gridSize
+    );
+    path = adjustedResult.path;
+    totalPipeLength = adjustedResult.totalPipeLength;
 
-      // Adjust coordinates to start at startPoint
-      x += startPoint.x;
-      y += startPoint.y;
-
-      // Boundary and obstacle checks
-      if (
-        x >= 0 &&
-        x < cols &&
-        y >= 0 &&
-        y < rows &&
-        grid[y][x] !== -1 &&
-        visited[y][x] === 0
-      ) {
-        // Calculate distance if not the first point
-        if (path.length > 0) {
-          const lastPoint = path[path.length - 1];
-          const segmentLength = calculateDistance(
-            lastPoint,
-            { x, y },
-            gridSize
-          );
-          totalPipeLength += segmentLength;
-
-          // Stop if max pipe length is exceeded
-          if (totalPipeLength > maxPipeLength) {
-            console.log('Max pipe length exceeded.');
-            return { path, totalPipeLength };
-          }
-        }
-
-        path.push({ x, y });
-        visited[y][x] = 1;
-      }
-    }
-
-    // Attempt to connect to end point if not already connected
-    const lastPoint = path[path.length - 1];
-    if (
-      lastPoint &&
-      (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)
-    ) {
-      console.log('Attempting to connect to end point using BFS');
-      const connectionPath = findPathToEndPoint(
-        lastPoint.x,
-        lastPoint.y,
-        endPoint,
-        grid,
-        visited,
-        path
-      );
-
-      if (connectionPath) {
-        const connectionLength = calculateSegmentLength(
-          connectionPath,
-          gridSize
-        );
-        if (totalPipeLength + connectionLength <= maxPipeLength) {
-          path.push(...connectionPath);
-          totalPipeLength += connectionLength;
-          console.log('Connected to end point successfully.');
-        } else {
-          console.log(
-            'Max pipe length exceeded during connection to end point.'
-          );
-        }
-      } else {
-        console.warn('No connection path found to the end point.');
-      }
-    }
   } else if (method === 'doubleSpiral') {
     console.log('Using double spiral path generation method.');
 
     // Generate the double spiral path
     const spiralPath = generateDoubleSpiralPath(rows, cols, loopSpacing);
 
-    // Create a copy of the grid to mark visited cells
-    const visited = grid.map((row) =>
-      row.map((cell) => (cell === -1 ? -1 : 0))
-    );
-
     // Adjust path based on start point and apply constraints
-    path = [];
-    for (let i = 0; i < spiralPath.length; i++) {
-      let { x, y } = spiralPath[i];
+    const adjustedResult = adjustPathToStartPoint(
+      spiralPath,
+      startPoint,
+      grid,
+      maxPipeLength,
+      gridSize
+    );
+    path = adjustedResult.path;
+    totalPipeLength = adjustedResult.totalPipeLength;
 
-      // Adjust coordinates to start at startPoint
-      x += startPoint.x;
-      y += startPoint.y;
-
-      // Boundary and obstacle checks
-      if (
-        x >= 0 &&
-        x < cols &&
-        y >= 0 &&
-        y < rows &&
-        grid[y][x] !== -1 &&
-        visited[y][x] === 0
-      ) {
-        // Calculate distance if not the first point
-        if (path.length > 0) {
-          const lastPoint = path[path.length - 1];
-          const segmentLength = calculateDistance(
-            lastPoint,
-            { x, y },
-            gridSize
-          );
-          totalPipeLength += segmentLength;
-
-          // Stop if max pipe length is exceeded
-          if (totalPipeLength > maxPipeLength) {
-            console.log('Max pipe length exceeded.');
-            return { path, totalPipeLength };
-          }
-        }
-
-        path.push({ x, y });
-        visited[y][x] = 1;
-      }
-    }
-
-    // Attempt to connect to end point if not already connected
-    const lastPoint = path[path.length - 1];
-    if (
-      lastPoint &&
-      (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)
-    ) {
-      console.log('Attempting to connect to end point using BFS');
-      const connectionPath = findPathToEndPoint(
-        lastPoint.x,
-        lastPoint.y,
-        endPoint,
-        grid,
-        visited,
-        path
-      );
-
-      if (connectionPath) {
-        const connectionLength = calculateSegmentLength(
-          connectionPath,
-          gridSize
-        );
-        if (totalPipeLength + connectionLength <= maxPipeLength) {
-          path.push(...connectionPath);
-          totalPipeLength += connectionLength;
-          console.log('Connected to end point successfully.');
-        } else {
-          console.log(
-            'Max pipe length exceeded during connection to end point.'
-          );
-        }
-      } else {
-        console.warn('No connection path found to the end point.');
-      }
-    }
   } else if (method === 'original') {
     console.log('Using original path generation method.');
 
@@ -241,35 +105,52 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
       (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)
     ) {
       console.log('Attempting to connect to end point using BFS');
-      const connectionPath = findPathToEndPoint(
-        lastPoint.x,
-        lastPoint.y,
+      const connectionResult = connectToEndPoint(
+        lastPoint,
         endPoint,
         grid,
         visited,
-        path
+        path,
+        maxPipeLength,
+        gridSize,
+        totalPipeLength
       );
-
-      if (connectionPath) {
-        const connectionLength = calculateSegmentLength(
-          connectionPath,
-          gridSize
-        );
-        if (totalPipeLength + connectionLength <= maxPipeLength) {
-          path.push(...connectionPath);
-          totalPipeLength += connectionLength;
-          console.log('Connected to end point successfully.');
-        } else {
-          console.log(
-            'Max pipe length exceeded during connection to end point.'
-          );
-        }
-      } else {
-        console.warn('No connection path found to the end point.');
-      }
+      path = connectionResult.path;
+      totalPipeLength = connectionResult.totalPipeLength;
     }
+
   } else {
     throw new Error(`Unknown path generation method: ${method}`);
+  }
+
+  // For 'doubleSpiral' and 'doubleSpiralSnake' methods, attempt to connect to end point
+  if (method !== 'original') {
+    const visited = grid.map((row) =>
+      row.map((cell) => (cell === -1 ? -1 : 0))
+    );
+    for (const point of path) {
+      visited[point.y][point.x] = 1;
+    }
+
+    const lastPoint = path[path.length - 1];
+    if (
+      lastPoint &&
+      (lastPoint.x !== endPoint.x || lastPoint.y !== endPoint.y)
+    ) {
+      console.log('Attempting to connect to end point using BFS');
+      const connectionResult = connectToEndPoint(
+        lastPoint,
+        endPoint,
+        grid,
+        visited,
+        path,
+        maxPipeLength,
+        gridSize,
+        totalPipeLength
+      );
+      path = connectionResult.path;
+      totalPipeLength = connectionResult.totalPipeLength;
+    }
   }
 
   console.log('Final Pipe Length:', totalPipeLength);
@@ -279,15 +160,32 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 };
 
 /**
- * Adjusts the generated path to start from the specified starting point.
+ * Adjusts the generated path to start from the specified starting point,
+ * updates the total pipe length, and applies max pipe length constraint.
+ *
+ * @param {Array<{ x: number, y: number }>} spiralPath - The generated spiral path.
+ * @param {Object} startPoint - The starting point { x: number, y: number }.
+ * @param {Array<Array<number>>} grid - The grid.
+ * @param {number} maxPipeLength - Maximum allowed pipe length in meters.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ *
+ * @returns {Object} - { path: adjustedPath, totalPipeLength }
  */
-const adjustPathToStartPoint = (spiralPath, startPoint, grid) => {
+const adjustPathToStartPoint = (
+  spiralPath,
+  startPoint,
+  grid,
+  maxPipeLength,
+  gridSize
+) => {
   const adjustedPath = [];
   const visited = grid.map((row) =>
     row.map((cell) => (cell === -1 ? -1 : 0))
   );
   const rows = grid.length;
   const cols = grid[0].length;
+
+  let totalPipeLength = 0;
 
   for (let i = 0; i < spiralPath.length; i++) {
     let { x, y } = spiralPath[i];
@@ -305,90 +203,74 @@ const adjustPathToStartPoint = (spiralPath, startPoint, grid) => {
       grid[y][x] !== -1 &&
       visited[y][x] === 0
     ) {
-      // Mark as visited and add point to path
-      visited[y][x] = 1;
+      // Calculate distance if not the first point
+      if (adjustedPath.length > 0) {
+        const lastPoint = adjustedPath[adjustedPath.length - 1];
+        const segmentLength = calculateDistance(lastPoint, { x, y }, gridSize);
+        totalPipeLength += segmentLength;
+
+        // Stop if max pipe length is exceeded
+        if (totalPipeLength > maxPipeLength) {
+          console.log('Max pipe length exceeded.');
+          return { path: adjustedPath, totalPipeLength };
+        }
+      }
+
       adjustedPath.push({ x, y });
+      visited[y][x] = 1;
     }
   }
-  return adjustedPath;
+
+  return { path: adjustedPath, totalPipeLength };
 };
 
 /**
- * Generates the original spiral path.
+ * Attempts to connect the last point of the path to the end point using BFS.
+ *
+ * @param {Object} lastPoint - The last point in the current path { x, y }.
+ * @param {Object} endPoint - The desired end point { x, y }.
+ * @param {Array<Array<number>>} grid - The grid.
+ * @param {Array<Array<number>>} visited - The grid with visited cells marked.
+ * @param {Array<{ x: number, y: number }>} path - The current path.
+ * @param {number} maxPipeLength - Maximum allowed pipe length in meters.
+ * @param {number} gridSize - Physical size of each grid cell in meters.
+ * @param {number} totalPipeLength - The total pipe length so far.
+ *
+ * @returns {Object} - { path: updatedPath, totalPipeLength: updatedTotalPipeLength }
  */
-const generateOriginalPath = (grid, loopSpacing, startPoint) => {
-  const path = [];
-  const visited = grid.map((row) =>
-    row.map((cell) => (cell === -1 ? -1 : 0))
+const connectToEndPoint = (
+  lastPoint,
+  endPoint,
+  grid,
+  visited,
+  path,
+  maxPipeLength,
+  gridSize,
+  totalPipeLength
+) => {
+  const connectionPath = findPathToEndPoint(
+    lastPoint.x,
+    lastPoint.y,
+    endPoint,
+    grid,
+    visited,
+    path
   );
-  const rows = grid.length;
-  const cols = grid[0].length;
 
-  let left = startPoint.x;
-  let right = startPoint.x;
-  let top = startPoint.y;
-  let bottom = startPoint.y;
-
-  while (left >= 0 || right < cols || top >= 0 || bottom < rows) {
-    // Move right along top boundary
-    for (let x = left; x <= right; x++) {
-      if (isValidMove(x, top, grid, visited)) {
-        path.push({ x, y: top });
-        markVisited(x, top, visited);
-      }
+  if (connectionPath) {
+    const connectionLength = calculateSegmentLength(connectionPath, gridSize);
+    if (totalPipeLength + connectionLength <= maxPipeLength) {
+      path.push(...connectionPath);
+      totalPipeLength += connectionLength;
+      console.log('Connected to end point successfully.');
+    } else {
+      console.log('Max pipe length exceeded during connection to end point.');
     }
-    top -= loopSpacing;
-
-    // Move down along right boundary
-    for (let y = top + 1; y <= bottom; y++) {
-      if (isValidMove(right, y, grid, visited)) {
-        path.push({ x: right, y });
-        markVisited(right, y, visited);
-      }
-    }
-    right += loopSpacing;
-
-    // Move left along bottom boundary
-    for (let x = right - 1; x >= left; x--) {
-      if (isValidMove(x, bottom, grid, visited)) {
-        path.push({ x, y: bottom });
-        markVisited(x, bottom, visited);
-      }
-    }
-    bottom += loopSpacing;
-
-    // Move up along left boundary
-    for (let y = bottom - 1; y > top; y--) {
-      if (isValidMove(left, y, grid, visited)) {
-        path.push({ x: left, y });
-        markVisited(left, y, visited);
-      }
-    }
-    left -= loopSpacing;
+  } else {
+    console.warn('No connection path found to the end point.');
   }
 
-  return path;
-};
-
-/**
- * Helper function to check if the move is valid.
- */
-const isValidMove = (x, y, grid, visited) => {
-  return (
-    x >= 0 &&
-    y >= 0 &&
-    y < grid.length &&
-    x < grid[0].length &&
-    grid[y][x] !== -1 &&
-    visited[y][x] === 0
-  );
-};
-
-/**
- * Helper function to mark a cell as visited.
- */
-const markVisited = (x, y, visited) => {
-  visited[y][x] = 1;
+  return { path, totalPipeLength };
 };
 
 /**
@@ -491,4 +373,82 @@ const calculateSegmentLength = (segment, gridSize) => {
     length += calculateDistance(segment[i - 1], segment[i], gridSize);
   }
   return length;
+};
+
+/**
+ * Generates the original spiral path.
+ */
+const generateOriginalPath = (grid, loopSpacing, startPoint) => {
+  const path = [];
+  const visited = grid.map((row) =>
+    row.map((cell) => (cell === -1 ? -1 : 0))
+  );
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  let left = startPoint.x;
+  let right = startPoint.x;
+  let top = startPoint.y;
+  let bottom = startPoint.y;
+
+  while (left >= 0 || right < cols || top >= 0 || bottom < rows) {
+    // Move right along top boundary
+    for (let x = left; x <= right; x++) {
+      if (isValidMove(x, top, grid, visited)) {
+        path.push({ x, y: top });
+        markVisited(x, top, visited);
+      }
+    }
+    top -= loopSpacing;
+
+    // Move down along right boundary
+    for (let y = top + 1; y <= bottom; y++) {
+      if (isValidMove(right, y, grid, visited)) {
+        path.push({ x: right, y });
+        markVisited(right, y, visited);
+      }
+    }
+    right += loopSpacing;
+
+    // Move left along bottom boundary
+    for (let x = right - 1; x >= left; x--) {
+      if (isValidMove(x, bottom, grid, visited)) {
+        path.push({ x, y: bottom });
+        markVisited(x, bottom, visited);
+      }
+    }
+    bottom += loopSpacing;
+
+    // Move up along left boundary
+    for (let y = bottom - 1; y > top; y--) {
+      if (isValidMove(left, y, grid, visited)) {
+        path.push({ x: left, y });
+        markVisited(left, y, visited);
+      }
+    }
+    left -= loopSpacing;
+  }
+
+  return path;
+};
+
+/**
+ * Helper function to check if the move is valid.
+ */
+const isValidMove = (x, y, grid, visited) => {
+  return (
+    x >= 0 &&
+    y >= 0 &&
+    y < grid.length &&
+    x < grid[0].length &&
+    grid[y][x] !== -1 &&
+    visited[y][x] === 0
+  );
+};
+
+/**
+ * Helper function to mark a cell as visited.
+ */
+const markVisited = (x, y, visited) => {
+  visited[y][x] = 1;
 };
