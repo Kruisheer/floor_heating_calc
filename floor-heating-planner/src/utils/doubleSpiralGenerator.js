@@ -14,28 +14,38 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
 
   const sizeX = cols;
   const sizeY = rows;
-  const size = Math.min(sizeX, sizeY);
+
+  // Determine the maximum number of layers based on grid dimensions and loop spacing
+  const maxLayers = Math.min(
+    Math.floor(sizeX / (loopSpacing * 2)),
+    Math.floor(sizeY / (loopSpacing * 2))
+  );
 
   // Outward spiral
-  for (let i = 0; i < size; i += loopSpacing * 2) {
+  for (let i = 0; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
+    const left = i;
+    const right = sizeX - i - 1;
+    const top = i;
+    const bottom = sizeY - i - 1;
+
     // Move right
-    for (let j = i; j < size - i; j++) {
+    for (let j = left; j <= right; j++) {
       x.push(j);
-      y.push(i);
+      y.push(top);
     }
     // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      x.push(size - i - 1);
+    for (let j = top + 1; j <= bottom; j++) {
+      x.push(right);
       y.push(j);
     }
     // Move left
-    for (let j = size - i - 2; j >= i; j--) {
+    for (let j = right - 1; j >= left; j--) {
       x.push(j);
-      y.push(size - i - 1);
+      y.push(bottom);
     }
     // Move up
-    for (let j = size - i - 2; j > i; j--) {
-      x.push(i);
+    for (let j = bottom - 1; j > top; j--) {
+      x.push(left);
       y.push(j);
     }
   }
@@ -44,25 +54,30 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   const xReturn = [];
   const yReturn = [];
 
-  for (let i = loopSpacing; i < size; i += loopSpacing * 2) {
+  for (let i = loopSpacing; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
+    const left = i;
+    const right = sizeX - i - 1;
+    const top = i;
+    const bottom = sizeY - i - 1;
+
     // Move right
-    for (let j = i; j < size - i; j++) {
+    for (let j = left; j <= right; j++) {
       xReturn.push(j);
-      yReturn.push(i);
+      yReturn.push(top);
     }
     // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      xReturn.push(size - i - 1);
+    for (let j = top + 1; j <= bottom; j++) {
+      xReturn.push(right);
       yReturn.push(j);
     }
     // Move left
-    for (let j = size - i - 2; j >= i; j--) {
+    for (let j = right - 1; j >= left; j--) {
       xReturn.push(j);
-      yReturn.push(size - i - 1);
+      yReturn.push(bottom);
     }
     // Move up
-    for (let j = size - i - 2; j > i; j--) {
-      xReturn.push(i);
+    for (let j = bottom - 1; j > top; j--) {
+      xReturn.push(left);
       yReturn.push(j);
     }
   }
@@ -87,4 +102,52 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   }
 
   return path;
+};
+
+/**
+ * Generates a double spiral path that uses only right angles.
+ *
+ * @param {number} rows - Number of rows in the grid.
+ * @param {number} cols - Number of columns in the grid.
+ * @param {number} loopSpacing - Spacing between spiral loops in grid units.
+ * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral path.
+ */
+export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
+  const spiralPath = [];
+  let left = 0;
+  let right = cols - 1;
+  let top = 0;
+  let bottom = rows - 1;
+
+  while (left <= right && top <= bottom) {
+    // Move right along the top row
+    for (let x = left; x <= right; x++) {
+      spiralPath.push({ x, y: top });
+    }
+    top += loopSpacing;
+
+    // Move down along the right column
+    for (let y = top; y <= bottom; y++) {
+      spiralPath.push({ x: right, y });
+    }
+    right -= loopSpacing;
+
+    // Move left along the bottom row
+    if (top <= bottom) {
+      for (let x = right; x >= left; x--) {
+        spiralPath.push({ x, y: bottom });
+      }
+      bottom -= loopSpacing;
+    }
+
+    // Move up along the left column
+    if (left <= right) {
+      for (let y = bottom; y >= top; y--) {
+        spiralPath.push({ x: left, y });
+      }
+      left += loopSpacing;
+    }
+  }
+
+  return spiralPath;
 };
