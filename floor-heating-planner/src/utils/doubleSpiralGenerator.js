@@ -39,7 +39,7 @@ export const generateDoubleSpiralPath = (rows, cols, loopSpacing = 2) => {
     // Move up along the left column
     if (left <= right) {
       for (let y = bottom; y >= top; y--) {
-        spiralPath.push({ x, y: left });
+        spiralPath.push({ x: left, y });
       }
       left += loopSpacing;
     }
@@ -89,7 +89,7 @@ export const generateCounterFlowSpiralPath = (rows, cols, loopSpacing = 2) => {
 
       // Move up along the left column
       for (let y = bottom; y >= top; y--) {
-        returnPath.push({ x, y: left });
+        returnPath.push({ x: left, y });
       }
       left += loopSpacing;
     }
