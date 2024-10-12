@@ -2,7 +2,7 @@
 
 import {
   generateDoubleSpiralPath,
-  generateCounterFlowSpiralPath,
+  generateDoubleSpiralWithReturnPath,
 } from './doubleSpiralGenerator';
 
 /**
@@ -44,8 +44,8 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
   if (method === 'doubleSpiralSnake') {
     console.log('Using double spiral snake path generation method.');
 
-    // Generate the counter-flow spiral path
-    const spiralPath = generateCounterFlowSpiralPath(rows, cols, loopSpacing);
+    // Generate the double spiral with return path
+    const spiralPath = generateDoubleSpiralWithReturnPath(cols, rows, loopSpacing);
 
     // Adjust path based on start point and apply constraints
     const adjustedResult = adjustPathToStartPoint(
@@ -57,7 +57,6 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     );
     path = adjustedResult.path;
     totalPipeLength = adjustedResult.totalPipeLength;
-
   } else if (method === 'doubleSpiral') {
     console.log('Using double spiral path generation method.');
 
@@ -74,7 +73,6 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     );
     path = adjustedResult.path;
     totalPipeLength = adjustedResult.totalPipeLength;
-
   } else if (method === 'original') {
     console.log('Using original path generation method.');
 
@@ -118,12 +116,11 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
       path = connectionResult.path;
       totalPipeLength = connectionResult.totalPipeLength;
     }
-
   } else {
     throw new Error(`Unknown path generation method: ${method}`);
   }
 
-  // For 'doubleSpiral' and 'doubleSpiralSnake' methods, attempt to connect to end point
+  // Attempt to connect to end point if not already connected
   if (method !== 'original') {
     const visited = grid.map((row) =>
       row.map((cell) => (cell === -1 ? -1 : 0))
@@ -187,12 +184,12 @@ const adjustPathToStartPoint = (
 
   let totalPipeLength = 0;
 
-  for (let i = 0; i < spiralPath.length; i++) {
-    let { x, y } = spiralPath[i];
+  const offsetX = startPoint.x;
+  const offsetY = startPoint.y;
 
-    // Offset the spiral to start from the startPoint
-    x += startPoint.x;
-    y += startPoint.y;
+  for (let i = 0; i < spiralPath.length; i++) {
+    let x = spiralPath[i].x + offsetX;
+    let y = spiralPath[i].y + offsetY;
 
     // Boundary and obstacle checks
     if (
