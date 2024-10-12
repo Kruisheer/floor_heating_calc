@@ -30,7 +30,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
 
   // Set endPoint based on loopSpacing if not provided
   const endPoint = options.endPoint || {
-    x: startPoint.x + loopSpacing,
+    x: startPoint.x,
     y: startPoint.y,
   };
 
@@ -61,7 +61,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     console.log('Using double spiral path generation method.');
 
     // Generate the double spiral path
-    const spiralPath = generateDoubleSpiralPath(rows, cols, loopSpacing);
+    const spiralPath = generateDoubleSpiralPath(cols, rows, loopSpacing);
 
     // Adjust path based on start point and apply constraints
     const adjustedResult = adjustPathToStartPoint(
@@ -120,7 +120,7 @@ export const generateHeatingLoopPath = (grid, options = {}) => {
     throw new Error(`Unknown path generation method: ${method}`);
   }
 
-  // Attempt to connect to end point if not already connected
+  // For methods other than 'original', attempt to connect to end point if not already connected
   if (method !== 'original') {
     const visited = grid.map((row) =>
       row.map((cell) => (cell === -1 ? -1 : 0))
