@@ -41,8 +41,8 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       x.push(j);
       y.push(bottom);
     }
-    // Move up (corrected)
-    for (let j = bottom - 1; j > top; j--) {
+    // Move up (corrected loop boundaries)
+    for (let j = bottom - 1; j >= top; j--) {
       x.push(left);
       y.push(j);
     }
@@ -73,8 +73,8 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       xReturn.push(j);
       yReturn.push(bottom);
     }
-    // Move up (corrected)
-    for (let j = bottom - 1; j > top; j--) {
+    // Move up (corrected loop boundaries)
+    for (let j = bottom - 1; j >= top; j--) {
       xReturn.push(left);
       yReturn.push(j);
     }
@@ -138,7 +138,7 @@ export const generateDoubleSpiralPath = (cols, rows, loopSpacing = 2) => {
       bottom -= loopSpacing;
     }
 
-    // Move up along the left column (corrected)
+    // Move up along the left column
     if (left <= right) {
       for (let y = bottom; y >= top; y--) {
         spiralPath.push({ x: left, y });
