@@ -74,7 +74,7 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       yReturn.push(bottom);
     }
     // Move up (corrected loop boundaries)
-    for (let j = bottom - 1; j >= top; j--) {
+    for (let j = bottom - 2; j >= top; j--) {
       xReturn.push(left);
       yReturn.push(j);
     }
