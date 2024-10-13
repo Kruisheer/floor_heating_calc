@@ -60,8 +60,8 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
       xReturn.push(j);
       yReturn.push(size - i - 1);
     }
-    // Move up (shortened by the space of two layers)
-    for (let j = size - i - 2; j > i; j--) {
+    // Move up (shortened by the space of two layers) #GK
+    for (let j = size - i - 4; j > i; j--) {
       xReturn.push(i);
       yReturn.push(j);
     }
