@@ -21,7 +21,7 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
     const left = i;
     const right = cols - i - 1;
     const top = i;
-    const bottom = rows - i - 1;
+    const bottom = rows - i - 2;
 
     // Move right
     for (let j = left; j <= right; j++) {
@@ -95,6 +95,11 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   for (let i = xReturn.length - 1; i >= 0; i--) {
     path.push({ x: xReturn[i], y: yReturn[i] });
   }
+  console.log('Edge lengths:');
+  console.log('Right edge length:', right - left + 1);
+  console.log('Down edge length:', bottom - top);
+  console.log('Left edge length:', right - left + 1);
+  console.log('Up edge length:', bottom - top - 1);
 
   return path;
 };
