@@ -110,9 +110,9 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
     const leftEdgeEnd = xReturn.length;
     console.log(`  Left edge length: ${leftEdgeEnd - leftEdgeStart}`);
 
-    // Move up
+    // Move up GK
     const upEdgeStart = xReturn.length;
-    for (let j = bottom - 1; j > top; j--) {
+    for (let j = bottom - 1; j > top + 1; j--) {
       xReturn.push(left);
       yReturn.push(j);
     }
