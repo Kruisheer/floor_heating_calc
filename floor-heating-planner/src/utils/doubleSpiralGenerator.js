@@ -95,11 +95,6 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   for (let i = xReturn.length - 1; i >= 0; i--) {
     path.push({ x: xReturn[i], y: yReturn[i] });
   }
-  console.log('Edge lengths:');
-  console.log('Right edge length:', right - left + 1);
-  console.log('Down edge length:', bottom - top);
-  console.log('Left edge length:', right - left + 1);
-  console.log('Up edge length:', bottom - top - 1);
 
   return path;
 };
