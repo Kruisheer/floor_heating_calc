@@ -9,81 +9,69 @@
  * @returns {Array<{ x: number, y: number }>} - Array of points representing the double spiral path with return.
  */
 export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) => {
-  const x = [];
-  const y = [];
-
+  const path = [];
   const sizeX = cols;
   const sizeY = rows;
-  const size = Math.min(sizeX, sizeY);
+  const maxLayers = Math.floor(Math.min(sizeX, sizeY) / (loopSpacing * 2));
 
   // Outward spiral
-  for (let i = 0; i < size; i += loopSpacing * 2) {
+  for (let layer = 0; layer < maxLayers; layer++) {
+    const left = layer * loopSpacing * 2;
+    const right = cols - layer * loopSpacing * 2 - 1;
+    const top = layer * loopSpacing * 2;
+    const bottom = rows - layer * loopSpacing * 2 - 1;
+
     // Move right
-    for (let j = i; j < size - i; j++) {
-      x.push(j);
-      y.push(i);
+    for (let x = left; x <= right; x++) {
+      path.push({ x, y: top });
     }
+
     // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      x.push(size - i - 1);
-      y.push(j);
+    for (let y = top + 1; y <= bottom; y++) {
+      path.push({ x: right, y });
     }
+
     // Move left
-    for (let j = size - i - 2; j >= i; j--) {
-      x.push(j);
-      y.push(size - i - 1);
+    for (let x = right - 1; x >= left; x--) {
+      path.push({ x, y: bottom });
     }
-    // Move up (shortened by the space of two layers)
-    for (let j = size - i - 2; j > i; j--) {
-      x.push(i);
-      y.push(j);
+
+    // Move up (adjusted to match doubleSpiral)
+    for (let y = bottom - 1; y >= top + 1; y--) {
+      path.push({ x: left, y });
     }
   }
 
   // Return spiral
-  const xReturn = [];
-  const yReturn = [];
+  for (let layer = maxLayers - 1; layer >= 0; layer--) {
+    const left = layer * loopSpacing * 2 + loopSpacing;
+    const right = cols - layer * loopSpacing * 2 - loopSpacing - 1;
+    const top = layer * loopSpacing * 2 + loopSpacing;
+    const bottom = rows - layer * loopSpacing * 2 - loopSpacing - 1;
 
-  for (let i = loopSpacing; i < size; i += loopSpacing * 2) {
+    if (left > right || top > bottom) {
+      continue;
+    }
+
     // Move right
-    for (let j = i; j < size - i; j++) {
-      xReturn.push(j);
-      yReturn.push(i);
+    for (let x = left; x <= right; x++) {
+      path.push({ x, y: top });
     }
+
     // Move down
-    for (let j = i + 1; j < size - i; j++) {
-      xReturn.push(size - i - 1);
-      yReturn.push(j);
+    for (let y = top + 1; y <= bottom; y++) {
+      path.push({ x: right, y });
     }
+
     // Move left
-    for (let j = size - i - 2; j >= i; j--) {
-      xReturn.push(j);
-      yReturn.push(size - i - 1);
+    for (let x = right - 1; x >= left; x--) {
+      path.push({ x, y: bottom });
     }
-    // Move up (shortened by the space of two layers) #GK
-    for (let j = size - i - 4; j > i; j--) {
-      xReturn.push(i);
-      yReturn.push(j);
+
+    // Move up (adjusted to match doubleSpiral)
+    for (let y = bottom - 1; y >= top + 1; y--) {
+      path.push({ x: left, y });
     }
-  }
-
-  // Adjust the end of the return path to align with the start of the outward path
-  if (xReturn.length > 0) {
-    xReturn[xReturn.length - 1] = x[0];
-    yReturn[yReturn.length - 1] = y[0];
-  }
-
-  // Combine paths
-  const path = [];
-
-  // Add outward spiral
-  for (let i = 0; i < x.length; i++) {
-    path.push({ x: x[i], y: y[i] });
-  }
-
-  // Add return spiral in reverse
-  for (let i = xReturn.length - 1; i >= 0; i--) {
-    path.push({ x: xReturn[i], y: yReturn[i] });
   }
 
   return path;
