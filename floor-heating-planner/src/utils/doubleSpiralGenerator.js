@@ -17,64 +17,107 @@ export const generateDoubleSpiralWithReturnPath = (cols, rows, loopSpacing = 2) 
   const maxLayers = Math.min(maxLayersX, maxLayersY);
 
   // Outward spiral
-  for (let i = 0; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
+  for (let layer = 0; layer < maxLayers; layer++) {
+    const i = layer * loopSpacing * 2;
     const left = i;
     const right = cols - i - 1;
     const top = i;
-    const bottom = rows - i - 2;
+    const bottom = rows - i - 1;
+
+    console.log(`Layer ${layer}:`);
+    console.log(`Left: ${left}, Right: ${right}, Top: ${top}, Bottom: ${bottom}`);
 
     // Move right
+    const rightEdgeStart = x.length;
     for (let j = left; j <= right; j++) {
       x.push(j);
       y.push(top);
     }
+    const rightEdgeEnd = x.length;
+    console.log(`  Right edge length: ${rightEdgeEnd - rightEdgeStart}`);
+
     // Move down
+    const downEdgeStart = x.length;
     for (let j = top + 1; j <= bottom; j++) {
       x.push(right);
       y.push(j);
     }
+    const downEdgeEnd = x.length;
+    console.log(`  Down edge length: ${downEdgeEnd - downEdgeStart}`);
+
     // Move left
+    const leftEdgeStart = x.length;
     for (let j = right - 1; j >= left; j--) {
       x.push(j);
       y.push(bottom);
     }
+    const leftEdgeEnd = x.length;
+    console.log(`  Left edge length: ${leftEdgeEnd - leftEdgeStart}`);
+
     // Move up
-    for (let j = bottom - 1; j > top; j--) {
+    const upEdgeStart = x.length;
+    for (let j = bottom - 1; j > top + 1; j--) {
       x.push(left);
       y.push(j);
     }
+    const upEdgeEnd = x.length;
+    console.log(`  Up edge length: ${upEdgeEnd - upEdgeStart}`);
   }
 
   // Return spiral
   const xReturn = [];
   const yReturn = [];
 
-  for (let i = loopSpacing; i < maxLayers * loopSpacing * 2; i += loopSpacing * 2) {
+  for (let layer = 0; layer < maxLayers; layer++) {
+    const i = layer * loopSpacing * 2 + loopSpacing;
     const left = i;
     const right = cols - i - 1;
     const top = i;
     const bottom = rows - i - 1;
 
+    if (left > right || top > bottom) {
+      console.log(`Return Layer ${layer}: Skipped (No space for return path)`);
+      continue;
+    }
+
+    console.log(`Return Layer ${layer}:`);
+    console.log(`Left: ${left}, Right: ${right}, Top: ${top}, Bottom: ${bottom}`);
+
     // Move right
+    const rightEdgeStart = xReturn.length;
     for (let j = left; j <= right; j++) {
       xReturn.push(j);
       yReturn.push(top);
     }
+    const rightEdgeEnd = xReturn.length;
+    console.log(`  Right edge length: ${rightEdgeEnd - rightEdgeStart}`);
+
     // Move down
+    const downEdgeStart = xReturn.length;
     for (let j = top + 1; j <= bottom; j++) {
       xReturn.push(right);
       yReturn.push(j);
     }
+    const downEdgeEnd = xReturn.length;
+    console.log(`  Down edge length: ${downEdgeEnd - downEdgeStart}`);
+
     // Move left
+    const leftEdgeStart = xReturn.length;
     for (let j = right - 1; j >= left; j--) {
       xReturn.push(j);
       yReturn.push(bottom);
     }
+    const leftEdgeEnd = xReturn.length;
+    console.log(`  Left edge length: ${leftEdgeEnd - leftEdgeStart}`);
+
     // Move up
+    const upEdgeStart = xReturn.length;
     for (let j = bottom - 1; j > top; j--) {
       xReturn.push(left);
       yReturn.push(j);
     }
+    const upEdgeEnd = xReturn.length;
+    console.log(`  Up edge length: ${upEdgeEnd - upEdgeStart}`);
   }
 
   // Adjust the end of the return path to align with the start of the outward path
