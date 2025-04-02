@@ -1,197 +1,146 @@
 // src/components/RoomCanvas.js
-
 import React from 'react';
-import { Stage, Layer, Line, Rect, Circle } from 'react-konva';
+import PropTypes from 'prop-types';
+
+const MM_PER_METER = 1000;
+
+// Define constants for grid cell types if your grid utils use them
+const CELL_TYPES = {
+    EMPTY: 0,
+    OBSTACLE: 1,
+    PASSAGEWAY: 2,
+    NO_PIPE_ZONE: 3,
+    PIPE: 4, // Example if grid was used for path
+    // Add other types as defined in your grid logic
+};
 
 const RoomCanvas = ({
-  grid,
-  path,
-  roomWidth,
-  roomHeight,
-  cellSizeX,
-  cellSizeY,
-  passageways = [],
-  loopSpacing,
-  startPoint,
-  endPoint,
-  onSetStartPoint, // Callback for interactive starting point setting
-  onSetEndPoint,   // Callback for interactive ending point setting
+  zones = [], // Array of { id, pathCommands, pipeLength, color }
+  roomWidthMeters,
+  roomHeightMeters,
+  pipeDiameterMM = 16, // Default diameter
+  // Optional props for grid/obstacle visualization
+  grid, // The 2D grid array (e.g., finalGrid)
+  gridResolution, // Resolution in meters (e.g., 0.1)
+  passageways = [], // Maybe needed for specific passageway styling
 }) => {
-  // Generate points for the Line component
-  const linePoints = path.flatMap((point) => [
-    point.x * cellSizeX + cellSizeX / 2,
-    point.y * cellSizeY + cellSizeY / 2,
-  ]);
 
-  // Visualize Starting Point
-  const startPointPx = [
-    startPoint.x * cellSizeX + cellSizeX / 2,
-    startPoint.y * cellSizeY + cellSizeY / 2,
-  ];
+  // Calculate pipe stroke width in meters (since viewBox is in meters)
+  const pipeStrokeWidthMeters = pipeDiameterMM / MM_PER_METER;
 
-  // Visualize Ending Point
-  const endPointPx = [
-    endPoint.x * cellSizeX + cellSizeX / 2,
-    endPoint.y * cellSizeY + cellSizeY / 2,
-  ];
-
-  // Handle click to set starting point
-  const handleStartPointClick = (e) => {
-    const stage = e.target.getStage();
-    const pointerPosition = stage.getPointerPosition();
-    const x = Math.floor(pointerPosition.x / cellSizeX);
-    const y = Math.floor(pointerPosition.y / cellSizeY);
-
-    // Ensure the clicked cell is within the grid and not an obstacle
-    if (grid[y] && grid[y][x] !== -1) {
-      console.log(`Setting new starting point: x=${x}, y=${y}`);
-      onSetStartPoint({ x, y });
-    } else {
-      console.warn('Clicked position is invalid or an obstacle.');
-    }
-  };
-
-  // Handle click to set ending point
-  const handleEndPointClick = (e) => {
-    const stage = e.target.getStage();
-    const pointerPosition = stage.getPointerPosition();
-    const x = Math.floor(pointerPosition.x / cellSizeX);
-    const y = Math.floor(pointerPosition.y / cellSizeY);
-
-    // Ensure the clicked cell is within the grid and not an obstacle
-    if (grid[y] && grid[y][x] !== -1) {
-      console.log(`Setting new ending point: x=${x}, y=${y}`);
-      onSetEndPoint({ x, y });
-    } else {
-      console.warn('Clicked position is invalid or an obstacle.');
-    }
-  };
+  // Basic validation
+  if (roomWidthMeters <= 0 || roomHeightMeters <= 0) {
+    return null; // Don't render if dimensions are invalid
+  }
 
   return (
-    <Stage width={roomWidth} height={roomHeight}>
-      <Layer>
-        {/* Draw Room Boundaries */}
-        <Line
-          points={[
-            0,
-            0,
-            roomWidth,
-            0,
-            roomWidth,
-            roomHeight,
-            0,
-            roomHeight,
-            0,
-            0,
-          ]}
-          stroke="black"
-          strokeWidth={2}
-          closed={true}
-        />
-
-        {/* Draw Passageways */}
-        {passageways.map((passageway, index) => {
-          const { side, position, width: passageWidth } = passageway;
-          let x1, y1, x2, y2;
-
-          // Convert position and width to pixels
-          let positionPx, passageWidthPx;
-          if (side === 'top' || side === 'bottom') {
-            positionPx = position * cellSizeX;
-            passageWidthPx = passageWidth * cellSizeX;
-          } else {
-            positionPx = position * cellSizeY;
-            passageWidthPx = passageWidth * cellSizeY;
-          }
-
-          if (side === 'top') {
-            x1 = positionPx;
-            y1 = 0;
-            x2 = positionPx + passageWidthPx;
-            y2 = 0;
-          } else if (side === 'bottom') {
-            x1 = positionPx;
-            y1 = roomHeight;
-            x2 = positionPx + passageWidthPx;
-            y2 = roomHeight;
-          } else if (side === 'left') {
-            x1 = 0;
-            y1 = positionPx;
-            x2 = 0;
-            y2 = positionPx + passageWidthPx;
-          } else if (side === 'right') {
-            x1 = roomWidth;
-            y1 = positionPx;
-            x2 = roomWidth;
-            y2 = positionPx + passageWidthPx;
-          }
-
-          return (
-            <Line
-              key={`passageway-${index}`}
-              points={[x1, y1, x2, y2]}
-              stroke="white"
-              strokeWidth={4}
+    <svg
+      width="100%" // Fill the container div
+      height="100%"
+      // *** IMPORTANT: viewBox uses actual room dimensions in METERS ***
+      viewBox={`0 0 ${roomWidthMeters} ${roomHeightMeters}`}
+      preserveAspectRatio="none" // Stretch SVG content if container aspect ratio differs
+      style={{ position: 'absolute', top: 0, left: 0 }}
+    >
+      {/* Optional: Render Grid Background */}
+      {grid && gridResolution > 0 && (
+        <g id="grid-layer" stroke="#eee" strokeWidth={0.001}> {/* Thin grid lines */}
+          {/* Vertical Lines */}
+          {Array.from({ length: Math.floor(roomWidthMeters / gridResolution) }).map((_, i) => (
+            <line
+              key={`v-line-${i}`}
+              x1={ (i + 1) * gridResolution }
+              y1={0}
+              x2={ (i + 1) * gridResolution }
+              y2={roomHeightMeters}
             />
-          );
-        })}
+          ))}
+          {/* Horizontal Lines */}
+          {Array.from({ length: Math.floor(roomHeightMeters / gridResolution) }).map((_, i) => (
+            <line
+              key={`h-line-${i}`}
+              x1={0}
+              y1={ (i + 1) * gridResolution }
+              x2={roomWidthMeters}
+              y2={ (i + 1) * gridResolution }
+            />
+          ))}
+        </g>
+      )}
 
-        {/* Draw Obstacles */}
-        {grid.map((row, y) =>
-          row.map((cell, x) => {
-            if (cell === -1) {
-              return (
-                <Rect
-                  key={`obstacle-${x}-${y}`}
-                  x={x * cellSizeX}
-                  y={y * cellSizeY}
-                  width={cellSizeX}
-                  height={cellSizeY}
-                  fill="gray"
-                />
-              );
-            }
-            return null;
-          })
-        )}
+      {/* Optional: Render Obstacles and No-Pipe Zones from Grid */}
+      {grid && gridResolution > 0 && (
+         <g id="obstacle-layer">
+           {grid.map((row, y) =>
+             row.map((cellType, x) => {
+               const cellX = x * gridResolution;
+               const cellY = y * gridResolution;
+               let fill = 'none';
+               let opacity = 0.5;
 
-        {/* Draw Heating Loop Path */}
-        {path.length > 1 && (
-          <Line
-            points={linePoints}
-            stroke="red"
-            strokeWidth={2}
-            lineCap="round"
-            lineJoin="round"
+               if (cellType === CELL_TYPES.OBSTACLE) {
+                 fill = '#888'; // Dark grey for obstacles
+                 opacity = 0.7;
+               } else if (cellType === CELL_TYPES.NO_PIPE_ZONE) {
+                 fill = '#fdd'; // Light red tint for no-pipe zones
+               } else if (cellType === CELL_TYPES.PASSAGEWAY) {
+                 // Maybe visualize passageways differently? e.g., lighter background or outline
+                 fill = '#eef'; // Light blue tint for passageways
+               }
+
+               if (fill !== 'none') {
+                 return (
+                   <rect
+                     key={`cell-${y}-${x}`}
+                     x={cellX}
+                     y={cellY}
+                     width={gridResolution}
+                     height={gridResolution}
+                     fill={fill}
+                     opacity={opacity}
+                     stroke="none" // No stroke for filled cells unless desired
+                   />
+                 );
+               }
+               return null;
+             })
+           )}
+         </g>
+      )}
+
+      {/* Render Heating Pipe Zones */}
+      <g id="pipe-layer">
+        {zones.map((zone) => (
+          <path
+            key={zone.id}
+            d={zone.pathCommands} // Use the pre-calculated SVG path data
+            stroke={zone.color || '#ff0000'} // Default to red if no color provided
+            // Stroke width is based on pipe diameter, converted to meters
+            strokeWidth={pipeStrokeWidthMeters}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
-        )}
+        ))}
+      </g>
 
-        {/* Draw Starting Point Indicator */}
-        <Circle
-          x={startPointPx[0]}
-          y={startPointPx[1]}
-          radius={5}
-          fill="blue"
-          stroke="black"
-          strokeWidth={1}
-          onClick={handleStartPointClick}
-          onTap={handleStartPointClick}
-        />
-
-        {/* Draw Ending Point Indicator */}
-        <Circle
-          x={endPointPx[0]}
-          y={endPointPx[1]}
-          radius={5}
-          fill="green"
-          stroke="black"
-          strokeWidth={1}
-          onClick={handleEndPointClick}
-          onTap={handleEndPointClick}
-        />
-      </Layer>
-    </Stage>
+    </svg>
   );
+};
+
+RoomCanvas.propTypes = {
+  zones: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      pathCommands: PropTypes.string.isRequired,
+      pipeLength: PropTypes.number,
+      color: PropTypes.string,
+  })),
+  roomWidthMeters: PropTypes.number.isRequired,
+  roomHeightMeters: PropTypes.number.isRequired,
+  pipeDiameterMM: PropTypes.number,
+  grid: PropTypes.array,
+  gridResolution: PropTypes.number,
+  passageways: PropTypes.array,
 };
 
 export default RoomCanvas;
