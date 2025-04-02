@@ -9,7 +9,9 @@ import {
   addPassagewaysToGrid,
   addNoPipeZonesToGrid,
 } from '../utils/roomGrid';
-import { generateHeatingLoopPath } from '../utils/pathGenerator';
+//import { generateHeatingLoopPath } from '../utils/pathGenerator';
+// Corrected import
+import { doubleSpiralGenerator } from '../utils/doubleSpiralGenerator'; // Adjust path if needed
 import './DraggableRoom.css';
 
 const DraggableRoom = ({
