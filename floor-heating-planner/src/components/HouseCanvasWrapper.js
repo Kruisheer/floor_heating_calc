@@ -87,7 +87,7 @@ const HouseCanvasWrapper = ({ rooms = [], setRooms, pipeSettings, scaleFactor = 
 };
 
 HouseCanvasWrapper.propTypes = {
-  rooms: PropTypes.arrayOf(PropTypes.shape(Room.propTypes || {})).isRequired, // Use shape if Room has propTypes
+  //rooms: PropTypes.arrayOf(PropTypes.shape(Room.propTypes || {})).isRequired, // Use shape if Room has propTypes
   setRooms: PropTypes.func.isRequired, // Function to update the main rooms array
   pipeSettings: PropTypes.shape(Settings.propTypes || {}), // Use shape if Settings has propTypes
   scaleFactor: PropTypes.number,
