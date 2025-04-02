@@ -4,101 +4,88 @@ import PropTypes from 'prop-types';
 
 const MM_PER_METER = 1000;
 
-// Define constants for grid cell types if your grid utils use them
+// Cell types (ensure these match your grid utility definitions)
 const CELL_TYPES = {
     EMPTY: 0,
     OBSTACLE: 1,
     PASSAGEWAY: 2,
     NO_PIPE_ZONE: 3,
-    PIPE: 4, // Example if grid was used for path
-    // Add other types as defined in your grid logic
 };
 
 const RoomCanvas = ({
-  zones = [], // Array of { id, pathCommands, pipeLength, color }
+  zones = [],
   roomWidthMeters,
   roomHeightMeters,
-  pipeDiameterMM = 16, // Default diameter
-  // Optional props for grid/obstacle visualization
-  grid, // The 2D grid array (e.g., finalGrid)
-  gridResolution, // Resolution in meters (e.g., 0.1)
-  passageways = [], // Maybe needed for specific passageway styling
+  pipeDiameterMM = 16,
+  grid,
+  gridResolution,
+  // passageways = [], // Currently unused, but could be for styling later
 }) => {
 
-  // Calculate pipe stroke width in meters (since viewBox is in meters)
+  // Calculate pipe stroke width in METERS for SVG viewBox consistency
   const pipeStrokeWidthMeters = pipeDiameterMM / MM_PER_METER;
 
-  // Basic validation
-  if (roomWidthMeters <= 0 || roomHeightMeters <= 0) {
-    return null; // Don't render if dimensions are invalid
-  }
+  if (roomWidthMeters <= 0 || roomHeightMeters <= 0) return null; // Render nothing if invalid size
+
+  // Calculate grid cell dimensions in meters if grid exists
+  const cellWidthMeters = gridResolution;
+  const cellHeightMeters = gridResolution;
 
   return (
     <svg
-      width="100%" // Fill the container div
+      width="100%"
       height="100%"
-      // *** IMPORTANT: viewBox uses actual room dimensions in METERS ***
-      viewBox={`0 0 ${roomWidthMeters} ${roomHeightMeters}`}
-      preserveAspectRatio="none" // Stretch SVG content if container aspect ratio differs
-      style={{ position: 'absolute', top: 0, left: 0 }}
+      viewBox={`0 0 ${roomWidthMeters} ${roomHeightMeters}`} // Use METERS
+      preserveAspectRatio="none"
+      style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }} // Ensure SVG is behind text overlays
     >
-      {/* Optional: Render Grid Background */}
+      {/* Layer for Grid Background (Optional) */}
       {grid && gridResolution > 0 && (
-        <g id="grid-layer" stroke="#eee" strokeWidth={0.001}> {/* Thin grid lines */}
-          {/* Vertical Lines */}
+        <g id="grid-background" stroke="#ddd" strokeWidth={0.001}> {/* Very thin lines */}
           {Array.from({ length: Math.floor(roomWidthMeters / gridResolution) }).map((_, i) => (
-            <line
-              key={`v-line-${i}`}
-              x1={ (i + 1) * gridResolution }
-              y1={0}
-              x2={ (i + 1) * gridResolution }
-              y2={roomHeightMeters}
-            />
+            <line key={`v-${i}`} x1={(i + 1) * gridResolution} y1={0} x2={(i + 1) * gridResolution} y2={roomHeightMeters} />
           ))}
-          {/* Horizontal Lines */}
           {Array.from({ length: Math.floor(roomHeightMeters / gridResolution) }).map((_, i) => (
-            <line
-              key={`h-line-${i}`}
-              x1={0}
-              y1={ (i + 1) * gridResolution }
-              x2={roomWidthMeters}
-              y2={ (i + 1) * gridResolution }
-            />
+            <line key={`h-${i}`} x1={0} y1={(i + 1) * gridResolution} x2={roomWidthMeters} y2={(i + 1) * gridResolution} />
           ))}
         </g>
       )}
 
-      {/* Optional: Render Obstacles and No-Pipe Zones from Grid */}
+      {/* Layer for Obstacles/Zones (Optional) */}
       {grid && gridResolution > 0 && (
-         <g id="obstacle-layer">
+         <g id="obstacle-zone-layer">
            {grid.map((row, y) =>
              row.map((cellType, x) => {
-               const cellX = x * gridResolution;
-               const cellY = y * gridResolution;
+               const cellX_meters = x * cellWidthMeters;
+               const cellY_meters = y * cellHeightMeters;
                let fill = 'none';
-               let opacity = 0.5;
+               let fillOpacity = 0.6;
 
-               if (cellType === CELL_TYPES.OBSTACLE) {
-                 fill = '#888'; // Dark grey for obstacles
-                 opacity = 0.7;
-               } else if (cellType === CELL_TYPES.NO_PIPE_ZONE) {
-                 fill = '#fdd'; // Light red tint for no-pipe zones
-               } else if (cellType === CELL_TYPES.PASSAGEWAY) {
-                 // Maybe visualize passageways differently? e.g., lighter background or outline
-                 fill = '#eef'; // Light blue tint for passageways
+               switch(cellType) {
+                   case CELL_TYPES.OBSTACLE:
+                       fill = '#666'; // Darker grey for obstacles
+                       break;
+                   case CELL_TYPES.NO_PIPE_ZONE:
+                       fill = '#ffcccc'; // Light red tint for no-pipe zones
+                       break;
+                   case CELL_TYPES.PASSAGEWAY:
+                       fill = '#ddeeff'; // Light blue tint for passageways
+                       break;
+                   default:
+                       fill = 'none';
                }
 
                if (fill !== 'none') {
                  return (
                    <rect
                      key={`cell-${y}-${x}`}
-                     x={cellX}
-                     y={cellY}
-                     width={gridResolution}
-                     height={gridResolution}
+                     x={cellX_meters}
+                     y={cellY_meters}
+                     width={cellWidthMeters}
+                     height={cellHeightMeters}
                      fill={fill}
-                     opacity={opacity}
-                     stroke="none" // No stroke for filled cells unless desired
+                     fillOpacity={fillOpacity}
+                     stroke="none"
                    />
                  );
                }
@@ -108,22 +95,20 @@ const RoomCanvas = ({
          </g>
       )}
 
-      {/* Render Heating Pipe Zones */}
-      <g id="pipe-layer">
+      {/* Layer for Heating Pipes */}
+      <g id="heating-pipe-layer">
         {zones.map((zone) => (
           <path
             key={zone.id}
-            d={zone.pathCommands} // Use the pre-calculated SVG path data
-            stroke={zone.color || '#ff0000'} // Default to red if no color provided
-            // Stroke width is based on pipe diameter, converted to meters
-            strokeWidth={pipeStrokeWidthMeters}
+            d={zone.pathCommands} // SVG path data (coords in meters)
+            stroke={zone.color || '#e41a1c'} // Default color if needed
+            strokeWidth={pipeStrokeWidthMeters} // Width in meters
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         ))}
       </g>
-
     </svg>
   );
 };
@@ -140,7 +125,7 @@ RoomCanvas.propTypes = {
   pipeDiameterMM: PropTypes.number,
   grid: PropTypes.array,
   gridResolution: PropTypes.number,
-  passageways: PropTypes.array,
+  // passageways: PropTypes.array, // Prop type if used later
 };
 
 export default RoomCanvas;
