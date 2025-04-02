@@ -1,95 +1,104 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import DraggableRoom from './DraggableRoom'; // Import the room component
-import { Room } from '../Room'; // Assuming Room type/interface is defined here
-import { Settings } from '../App'; // Assuming Settings type is defined here
+// REMOVED: import { Room } from '../Room'; // No longer needed here
+// We assume Settings type comes implicitly through props or isn't strictly checked here
+// import { Settings } from '../App'; // Might not be needed if not used for propTypes
 
-// Define default scale or get it from context/props if dynamic
 const DEFAULT_SCALE_FACTOR = 50; // Pixels per meter
 
 const HouseCanvasWrapper = ({ rooms = [], setRooms, pipeSettings, scaleFactor = DEFAULT_SCALE_FACTOR }) => {
-  // State to hold the positions of each room { [roomId]: { x, y } }
   const [positions, setPositions] = useState({});
 
-  // Initialize positions when rooms load or change
   useEffect(() => {
     setPositions(prevPositions => {
       const newPositions = {};
       rooms.forEach(room => {
-        // Keep existing position if available, otherwise default (e.g., 0,0 or maybe cascade?)
-        // Or maybe load initial positions from the room object itself if stored there
+        // Use existing position from state, fallback to room object's position, then to 0,0
         newPositions[room.id] = prevPositions[room.id] || room.position || { x: 0, y: 0 };
       });
       return newPositions;
     });
-  }, [rooms]); // Re-run if the rooms array changes
+  }, [rooms]);
 
-  // Callback for when a room stops being dragged
   const handleDragStop = useCallback((roomId, newPosition) => {
-    // Update local position state
     setPositions(prev => ({
       ...prev,
       [roomId]: newPosition,
     }));
 
-    // --- IMPORTANT: Persist the position change back to the main state ---
-    // This ensures the position is saved if using usePersistentState in App.tsx
-    // It finds the room, updates its position, and calls setRooms with the new array.
+    // Persist position back to the main rooms array in App.js state
     setRooms(currentRooms =>
       currentRooms.map(room =>
         room.id === roomId ? { ...room, position: newPosition } : room
       )
     );
-  }, [setRooms]); // Include setRooms in dependencies
+  }, [setRooms]);
 
-  // Callback for pipe length calculation (just logging for now, could aggregate)
   const handlePipeLengthCalculated = useCallback((roomId, length) => {
-    // console.log(`Room ${roomId} calculated pipe length: ${length.toFixed(1)}m`);
-    // Optionally update room data with length:
-    // setRooms(currentRooms =>
-    //   currentRooms.map(room =>
-    //     room.id === roomId ? { ...room, calculatedLength: length } : room
-    //   )
-    // );
-  }, []); // Empty dependency array if it doesn't depend on external state change
+    // Optional: Update room data or aggregate length
+     // console.log(`Room ${roomId} calculated length: ${length.toFixed(1)}m`);
+  }, []);
 
 
   const canvasStyle = {
-    position: 'relative', // Crucial for absolute positioning of children
-    width: '100%', // Or specific pixel size like '2000px'
-    height: '100vh', // Or specific pixel size like '1500px'
-    backgroundColor: '#f0f0f0', // Light background for the canvas
+    position: 'relative', // Essential for absolute positioning of DraggableRoom
+    width: '100%',
+    minHeight: '80vh', // Ensure it has some height
+    backgroundColor: '#f4f4f4',
     border: '1px solid #ccc',
-    overflow: 'auto', // Add scrollbars if content exceeds dimensions
-    cursor: 'default', // Default cursor for the canvas background
+    overflow: 'auto', // Add scrollbars if rooms go outside bounds
+    cursor: 'default',
   };
 
   return (
     <div style={canvasStyle}>
       {rooms.map((room) => (
-        <DraggableRoom
-          key={room.id}
-          id={room.id}
-          name={room.name}
-          dimensions={room.dimensions} // e.g., "5x4"
-          // obstacles={room.obstacles} // Pass if needed
-          // passageways={room.passageways} // Pass if needed
-          // noPipeZones={room.noPipeZones} // Pass if needed
-          position={positions[room.id] || { x: 0, y: 0 }} // Pass controlled position from state
-          pipeSettings={pipeSettings} // Pass global pipe settings
-          scaleFactor={scaleFactor}
-          onDragStop={handleDragStop} // Pass the handler to update position
-          onPipeLengthCalculated={handlePipeLengthCalculated}
-        />
+        // Ensure room object has necessary fields before rendering
+        room && room.id && room.name && room.dimensions && positions[room.id] ? (
+          <DraggableRoom
+            key={room.id}
+            id={room.id}
+            name={room.name}
+            dimensions={room.dimensions}
+            obstacles={room.obstacles || []} // Provide defaults for optional props
+            passageways={room.passageways || []}
+            noPipeZones={room.noPipeZones || []}
+            position={positions[room.id]} // Pass controlled position
+            pipeSettings={pipeSettings}
+            scaleFactor={scaleFactor}
+            onDragStop={handleDragStop}
+            onPipeLengthCalculated={handlePipeLengthCalculated}
+          />
+        ) : null // Don't render if essential room data is missing
       ))}
     </div>
   );
 };
 
+// --- Corrected PropTypes ---
 HouseCanvasWrapper.propTypes = {
-  //rooms: PropTypes.arrayOf(PropTypes.shape(Room.propTypes || {})).isRequired, // Use shape if Room has propTypes
-  setRooms: PropTypes.func.isRequired, // Function to update the main rooms array
-  pipeSettings: PropTypes.shape(Settings.propTypes || {}), // Use shape if Settings has propTypes
+  // Define the expected shape of objects in the rooms array directly
+  rooms: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      dimensions: PropTypes.string.isRequired, // e.g., "5x4"
+      position: PropTypes.shape({ // Position is now managed here
+          x: PropTypes.number,
+          y: PropTypes.number,
+      }),
+      obstacles: PropTypes.array, // Mark as optional if they might be missing
+      passageways: PropTypes.array,
+      noPipeZones: PropTypes.array,
+      // Add other expected fields from your Room definition if needed for rendering checks
+  })).isRequired,
+  setRooms: PropTypes.func.isRequired,
+  // Define shape for settings if you want stricter checking
+  pipeSettings: PropTypes.shape({
+      pipeSpacing: PropTypes.number,
+      maxPipeLength: PropTypes.number,
+      pipeDiameter: PropTypes.number,
+  }),
   scaleFactor: PropTypes.number,
 };
 
