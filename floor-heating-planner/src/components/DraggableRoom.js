@@ -1,159 +1,146 @@
 // src/components/DraggableRoom.js
+import React from 'react';
+import PropTypes from 'prop-types';
 
-import React, { useEffect, useMemo } from 'react';
-import Draggable from 'react-draggable';
-import RoomCanvas from './RoomCanvas';
-import {
-  createRoomGrid,
-  addObstaclesToGrid,
-  addPassagewaysToGrid,
-  addNoPipeZonesToGrid,
-} from '../utils/roomGrid';
-//import { generateHeatingLoopPath } from '../utils/pathGenerator';
-// Corrected import
-import { doubleSpiralGenerator } from '../utils/doubleSpiralGenerator'; // Adjust path if needed
-import './DraggableRoom.css';
+const MM_PER_METER = 1000;
 
-const DraggableRoom = ({
-  name,
-  dimensions,
-  obstacles = [],
-  passageways = [],
-  noPipeZones = [],
-  position = { x: 0, y: 0 },
-  loopSpacing = 1,
-  startPoint = { x: 0, y: 0 },
-  endPoint = { x: 0, y: 0 },
-  pathMethod = 'doubleSpiral', // Default path method
-  onDragStop,
-  onPipeLengthCalculated,
-  onStartPointChange,
-  onEndPointChange,
-  maxPipeLength = 90,
+// Define constants for grid cell types if your grid utils use them
+const CELL_TYPES = {
+    EMPTY: 0,
+    OBSTACLE: 1,
+    PASSAGEWAY: 2,
+    NO_PIPE_ZONE: 3,
+    PIPE: 4, // Example if grid was used for path
+    // Add other types as defined in your grid logic
+};
+
+const RoomCanvas = ({
+  zones = [], // Array of { id, pathCommands, pipeLength, color }
+  roomWidthMeters,
+  roomHeightMeters,
+  pipeDiameterMM = 16, // Default diameter
+  // Optional props for grid/obstacle visualization
+  grid, // The 2D grid array (e.g., finalGrid)
+  gridResolution, // Resolution in meters (e.g., 0.1)
+  passageways = [], // Maybe needed for specific passageway styling
 }) => {
-  // Parse the dimensions (e.g., "5x4" becomes [5, 4])
-  const [length, width] = useMemo(() => {
-    const dims = dimensions.split('x').map(Number);
-    return dims.length === 2 ? dims : [5, 5]; // Default to square if invalid
-  }, [dimensions]);
 
-  // Define a scale factor to convert meters to pixels (adjust as needed)
-  const scaleFactor = 50; // 1 meter = 50 pixels
+  // Calculate pipe stroke width in meters (since viewBox is in meters)
+  const pipeStrokeWidthMeters = pipeDiameterMM / MM_PER_METER;
 
-  // Calculate the room size in pixels
-  const roomWidth = useMemo(() => width * scaleFactor, [width, scaleFactor]);
-  const roomHeight = useMemo(() => length * scaleFactor, [length, scaleFactor]);
-
-  // Create the grid for the room
-  const gridResolution = 0.1; // 10 cm per grid cell
-  const grid = useMemo(
-    () => createRoomGrid(dimensions, gridResolution),
-    [dimensions, gridResolution]
-  );
-
-  // Add obstacles to the grid (if any)
-  const gridWithObstacles = useMemo(
-    () => addObstaclesToGrid(grid, obstacles),
-    [grid, obstacles]
-  );
-
-  // Add passageways to the grid (if any)
-  const gridWithPassageways = useMemo(
-    () =>
-      addPassagewaysToGrid(
-        gridWithObstacles,
-        passageways,
-        dimensions,
-        gridResolution
-      ),
-    [gridWithObstacles, passageways, dimensions, gridResolution]
-  );
-
-  // Add no-pipe zones to the grid (if any)
-  const finalGrid = useMemo(
-    () => addNoPipeZonesToGrid(gridWithPassageways, noPipeZones),
-    [gridWithPassageways, noPipeZones]
-  );
-
-  // Generate the heating loop path
-  const { path, totalPipeLength } = useMemo(
-    () =>
-      generateHeatingLoopPath(finalGrid, {
-        gridSize: gridResolution,
-        loopSpacing: loopSpacing,
-        startPoint: startPoint,
-        endPoint: endPoint,
-        maxPipeLength: maxPipeLength,
-        method: pathMethod, // Pass the selected path generation method
-      }),
-    [
-      finalGrid,
-      gridResolution,
-      loopSpacing,
-      startPoint,
-      endPoint,
-      maxPipeLength,
-      pathMethod,
-    ]
-  );
-
-  // Adjust cell size for the RoomCanvas
-  const cellSizeX = useMemo(() => roomWidth / grid[0].length, [roomWidth, grid]);
-  const cellSizeY = useMemo(() => roomHeight / grid.length, [roomHeight, grid]);
-
-  // Notify the parent component of the pipe length
-  useEffect(() => {
-    if (onPipeLengthCalculated) {
-      onPipeLengthCalculated(name, totalPipeLength);
-    }
-  }, [onPipeLengthCalculated, name, totalPipeLength]);
-
-  // Handle starting point updates from RoomCanvas
-  const handleStartPointSet = (newPoint) => {
-    if (onStartPointChange) {
-      onStartPointChange(name, newPoint);
-    }
-  };
-
-  // Handle ending point updates from RoomCanvas
-  const handleEndPointSet = (newPoint) => {
-    if (onEndPointChange) {
-      onEndPointChange(name, newPoint);
-    }
-  };
+  // Basic validation
+  if (roomWidthMeters <= 0 || roomHeightMeters <= 0) {
+    return null; // Don't render if dimensions are invalid
+  }
 
   return (
-    <Draggable
-      position={position}
-      onStop={onDragStop}
-      grid={[scaleFactor / 2, scaleFactor / 2]} // Snap to grid (adjust as needed)
-      bounds="parent"
+    <svg
+      width="100%" // Fill the container div
+      height="100%"
+      // *** IMPORTANT: viewBox uses actual room dimensions in METERS ***
+      viewBox={`0 0 ${roomWidthMeters} ${roomHeightMeters}`}
+      preserveAspectRatio="none" // Stretch SVG content if container aspect ratio differs
+      style={{ position: 'absolute', top: 0, left: 0 }}
     >
-      <div
-        className="draggable-room"
-        style={{
-          width: roomWidth,
-          height: roomHeight,
-        }}
-      >
-        {/* Room Canvas */}
-        <RoomCanvas
-          grid={finalGrid}
-          path={path}
-          roomWidth={roomWidth}
-          roomHeight={roomHeight}
-          cellSizeX={cellSizeX}
-          cellSizeY={cellSizeY}
-          passageways={passageways}
-          loopSpacing={loopSpacing}
-          startPoint={startPoint}
-          endPoint={endPoint}
-          onSetStartPoint={handleStartPointSet}
-          onSetEndPoint={handleEndPointSet}
-        />
-      </div>
-    </Draggable>
+      {/* Optional: Render Grid Background */}
+      {grid && gridResolution > 0 && (
+        <g id="grid-layer" stroke="#eee" strokeWidth={0.001}> {/* Thin grid lines */}
+          {/* Vertical Lines */}
+          {Array.from({ length: Math.floor(roomWidthMeters / gridResolution) }).map((_, i) => (
+            <line
+              key={`v-line-${i}`}
+              x1={ (i + 1) * gridResolution }
+              y1={0}
+              x2={ (i + 1) * gridResolution }
+              y2={roomHeightMeters}
+            />
+          ))}
+          {/* Horizontal Lines */}
+          {Array.from({ length: Math.floor(roomHeightMeters / gridResolution) }).map((_, i) => (
+            <line
+              key={`h-line-${i}`}
+              x1={0}
+              y1={ (i + 1) * gridResolution }
+              x2={roomWidthMeters}
+              y2={ (i + 1) * gridResolution }
+            />
+          ))}
+        </g>
+      )}
+
+      {/* Optional: Render Obstacles and No-Pipe Zones from Grid */}
+      {grid && gridResolution > 0 && (
+         <g id="obstacle-layer">
+           {grid.map((row, y) =>
+             row.map((cellType, x) => {
+               const cellX = x * gridResolution;
+               const cellY = y * gridResolution;
+               let fill = 'none';
+               let opacity = 0.5;
+
+               if (cellType === CELL_TYPES.OBSTACLE) {
+                 fill = '#888'; // Dark grey for obstacles
+                 opacity = 0.7;
+               } else if (cellType === CELL_TYPES.NO_PIPE_ZONE) {
+                 fill = '#fdd'; // Light red tint for no-pipe zones
+               } else if (cellType === CELL_TYPES.PASSAGEWAY) {
+                 // Maybe visualize passageways differently? e.g., lighter background or outline
+                 fill = '#eef'; // Light blue tint for passageways
+               }
+
+               if (fill !== 'none') {
+                 return (
+                   <rect
+                     key={`cell-${y}-${x}`}
+                     x={cellX}
+                     y={cellY}
+                     width={gridResolution}
+                     height={gridResolution}
+                     fill={fill}
+                     opacity={opacity}
+                     stroke="none" // No stroke for filled cells unless desired
+                   />
+                 );
+               }
+               return null;
+             })
+           )}
+         </g>
+      )}
+
+      {/* Render Heating Pipe Zones */}
+      <g id="pipe-layer">
+        {zones.map((zone) => (
+          <path
+            key={zone.id}
+            d={zone.pathCommands} // Use the pre-calculated SVG path data
+            stroke={zone.color || '#ff0000'} // Default to red if no color provided
+            // Stroke width is based on pipe diameter, converted to meters
+            strokeWidth={pipeStrokeWidthMeters}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ))}
+      </g>
+
+    </svg>
   );
 };
 
-export default DraggableRoom;
+RoomCanvas.propTypes = {
+  zones: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      pathCommands: PropTypes.string.isRequired,
+      pipeLength: PropTypes.number,
+      color: PropTypes.string,
+  })),
+  roomWidthMeters: PropTypes.number.isRequired,
+  roomHeightMeters: PropTypes.number.isRequired,
+  pipeDiameterMM: PropTypes.number,
+  grid: PropTypes.array,
+  gridResolution: PropTypes.number,
+  passageways: PropTypes.array,
+};
+
+export default RoomCanvas;
